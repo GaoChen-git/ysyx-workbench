@@ -54,6 +54,42 @@ static int cmd_q(char *args) {
 
 static int cmd_help(char *args);
 
+//单步执行
+static int cmd_si(char *args) {
+  static int n;
+  if (args == NULL)
+    n = 1;
+  else
+    sscanf(args, "%d", &n);
+  cpu_exec(n);
+  return 0;
+}
+//打印寄存器
+static int cmd_info(char *args) {
+  char *arg = strtok(NULL, " ");
+  if (arg == NULL) {
+    printf("please add parameters\n");
+  }
+  else if (strcmp(arg, "r") == 0) {
+    isa_reg_display();// nemu/src/isa/$ISA/reg.c
+  }
+  else {
+    printf("invalid command\n");
+  }
+  return 0;
+}
+
+//扫描内存
+static int cmd_x(char *args) {
+  return 0;
+}
+
+static int cmd_p(char *args) {
+  
+  
+  return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -62,8 +98,11 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-
   /* TODO: Add more commands */
+  { "si", "Single step program through N instructions", cmd_si },
+  { "info", "Print program status", cmd_info },
+  { "x", "Scan memory", cmd_x },
+  { "p", "Evaluate the expression EXPR", cmd_p }
 
 };
 
