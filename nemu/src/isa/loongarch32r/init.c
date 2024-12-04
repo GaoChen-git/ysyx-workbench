@@ -14,29 +14,30 @@
 ***************************************************************************************/
 
 #include <isa.h>
-#include <cpu/cpu.h>
-#include <difftest-def.h>
 #include <memory/paddr.h>
 
-__EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
-  assert(0);
+// this is not consistent with uint8_t
+// but it is ok since we do not access the array directly
+static const uint32_t img [] = {
+  0x1c00000c,  // pcaddu12i $t0,0
+  0x29804180,  // st.w $zero,$t0,16
+  0x28804184,  // ld.w $a0,$t0,16
+  0x002a0000,  // break 0 (used as nemu_trap)
+  0xdeadbeef,  // some data
+};
+
+static void restart() {
+  /* Set the initial program counter. */
+  cpu.pc = RESET_VECTOR;
+
+  /* The zero register is always 0. */
+  cpu.gpr[0] = 0;
 }
 
-__EXPORT void difftest_regcpy(void *dut, bool direction) {
-  assert(0);
-}
+void init_isa() {
+  /* Load built-in image. */
+  memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
 
-__EXPORT void difftest_exec(uint64_t n) {
-  assert(0);
-}
-
-__EXPORT void difftest_raise_intr(word_t NO) {
-  assert(0);
-}
-
-__EXPORT void difftest_init(int port) {
-  void init_mem();
-  init_mem();
-  /* Perform ISA dependent initialization. */
-  init_isa();
+  /* Initialize this virtual computer system. */
+  restart();
 }
