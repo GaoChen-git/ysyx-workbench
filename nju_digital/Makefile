@@ -4,7 +4,8 @@ all:
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@echo "Write this Makefile by your self."
-	verilator -Wall --cc --exe --build ./csrc/main.cpp ./vsrc/our_OnOff.v
+	verilator -Wall --cc --exe --build --trace ./csrc/encode42_main.cpp ./vsrc/encode42.v
 clean:
-	rm -rf obj_dir
+	rm -rf obj_dir *.vcd
+
 include ../Makefile
