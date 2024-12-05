@@ -8,16 +8,19 @@
 // Constructors
 
 Vour_OnOff::Vour_OnOff(VerilatedContext* _vcontextp__, const char* _vcname__)
-    : vlSymsp{new Vour_OnOff__Syms(_vcontextp__, _vcname__, this)}
+    : VerilatedModel{*_vcontextp__}
+    , vlSymsp{new Vour_OnOff__Syms(contextp(), _vcname__, this)}
     , a{vlSymsp->TOP.a}
     , b{vlSymsp->TOP.b}
     , f{vlSymsp->TOP.f}
     , rootp{&(vlSymsp->TOP)}
 {
+    // Register model with the context
+    contextp()->addModel(this);
 }
 
 Vour_OnOff::Vour_OnOff(const char* _vcname__)
-    : Vour_OnOff(nullptr, _vcname__)
+    : Vour_OnOff(Verilated::threadContextp(), _vcname__)
 {
 }
 
@@ -29,42 +32,15 @@ Vour_OnOff::~Vour_OnOff() {
 }
 
 //============================================================
-// Evaluation loop
+// Evaluation function
 
-void Vour_OnOff___024root___eval_initial(Vour_OnOff___024root* vlSelf);
-void Vour_OnOff___024root___eval_settle(Vour_OnOff___024root* vlSelf);
-void Vour_OnOff___024root___eval(Vour_OnOff___024root* vlSelf);
-QData Vour_OnOff___024root___change_request(Vour_OnOff___024root* vlSelf);
 #ifdef VL_DEBUG
 void Vour_OnOff___024root___eval_debug_assertions(Vour_OnOff___024root* vlSelf);
 #endif  // VL_DEBUG
-void Vour_OnOff___024root___final(Vour_OnOff___024root* vlSelf);
-
-static void _eval_initial_loop(Vour_OnOff__Syms* __restrict vlSymsp) {
-    vlSymsp->__Vm_didInit = true;
-    Vour_OnOff___024root___eval_initial(&(vlSymsp->TOP));
-    // Evaluate till stable
-    int __VclockLoop = 0;
-    QData __Vchange = 1;
-    do {
-        VL_DEBUG_IF(VL_DBG_MSGF("+ Initial loop\n"););
-        Vour_OnOff___024root___eval_settle(&(vlSymsp->TOP));
-        Vour_OnOff___024root___eval(&(vlSymsp->TOP));
-        if (VL_UNLIKELY(++__VclockLoop > 100)) {
-            // About to fail, so enable debug to see what's not settling.
-            // Note you must run make with OPT=-DVL_DEBUG for debug prints.
-            int __Vsaved_debug = Verilated::debug();
-            Verilated::debug(1);
-            __Vchange = Vour_OnOff___024root___change_request(&(vlSymsp->TOP));
-            Verilated::debug(__Vsaved_debug);
-            VL_FATAL_MT("vsrc/our_OnOff.v", 2, "",
-                "Verilated model didn't DC converge\n"
-                "- See https://verilator.org/warn/DIDNOTCONVERGE");
-        } else {
-            __Vchange = Vour_OnOff___024root___change_request(&(vlSymsp->TOP));
-        }
-    } while (VL_UNLIKELY(__Vchange));
-}
+void Vour_OnOff___024root___eval_static(Vour_OnOff___024root* vlSelf);
+void Vour_OnOff___024root___eval_initial(Vour_OnOff___024root* vlSelf);
+void Vour_OnOff___024root___eval_settle(Vour_OnOff___024root* vlSelf);
+void Vour_OnOff___024root___eval(Vour_OnOff___024root* vlSelf);
 
 void Vour_OnOff::eval_step() {
     VL_DEBUG_IF(VL_DBG_MSGF("+++++TOP Evaluate Vour_OnOff::eval_step\n"); );
@@ -72,44 +48,52 @@ void Vour_OnOff::eval_step() {
     // Debug assertions
     Vour_OnOff___024root___eval_debug_assertions(&(vlSymsp->TOP));
 #endif  // VL_DEBUG
-    // Initialize
-    if (VL_UNLIKELY(!vlSymsp->__Vm_didInit)) _eval_initial_loop(vlSymsp);
-    // Evaluate till stable
-    int __VclockLoop = 0;
-    QData __Vchange = 1;
-    do {
-        VL_DEBUG_IF(VL_DBG_MSGF("+ Clock loop\n"););
-        Vour_OnOff___024root___eval(&(vlSymsp->TOP));
-        if (VL_UNLIKELY(++__VclockLoop > 100)) {
-            // About to fail, so enable debug to see what's not settling.
-            // Note you must run make with OPT=-DVL_DEBUG for debug prints.
-            int __Vsaved_debug = Verilated::debug();
-            Verilated::debug(1);
-            __Vchange = Vour_OnOff___024root___change_request(&(vlSymsp->TOP));
-            Verilated::debug(__Vsaved_debug);
-            VL_FATAL_MT("vsrc/our_OnOff.v", 2, "",
-                "Verilated model didn't converge\n"
-                "- See https://verilator.org/warn/DIDNOTCONVERGE");
-        } else {
-            __Vchange = Vour_OnOff___024root___change_request(&(vlSymsp->TOP));
-        }
-    } while (VL_UNLIKELY(__Vchange));
+    vlSymsp->__Vm_deleter.deleteAll();
+    if (VL_UNLIKELY(!vlSymsp->__Vm_didInit)) {
+        vlSymsp->__Vm_didInit = true;
+        VL_DEBUG_IF(VL_DBG_MSGF("+ Initial\n"););
+        Vour_OnOff___024root___eval_static(&(vlSymsp->TOP));
+        Vour_OnOff___024root___eval_initial(&(vlSymsp->TOP));
+        Vour_OnOff___024root___eval_settle(&(vlSymsp->TOP));
+    }
+    // MTask 0 start
+    VL_DEBUG_IF(VL_DBG_MSGF("MTask0 starting\n"););
+    Verilated::mtaskId(0);
+    VL_DEBUG_IF(VL_DBG_MSGF("+ Eval\n"););
+    Vour_OnOff___024root___eval(&(vlSymsp->TOP));
+    // Evaluate cleanup
+    Verilated::endOfThreadMTask(vlSymsp->__Vm_evalMsgQp);
+    Verilated::endOfEval(vlSymsp->__Vm_evalMsgQp);
 }
 
 //============================================================
-// Invoke final blocks
+// Events and timing
+bool Vour_OnOff::eventsPending() { return false; }
 
-void Vour_OnOff::final() {
-    Vour_OnOff___024root___final(&(vlSymsp->TOP));
+uint64_t Vour_OnOff::nextTimeSlot() {
+    VL_FATAL_MT(__FILE__, __LINE__, "", "%Error: No delays in the design");
+    return 0;
 }
 
 //============================================================
 // Utilities
 
-VerilatedContext* Vour_OnOff::contextp() const {
-    return vlSymsp->_vm_contextp__;
-}
-
 const char* Vour_OnOff::name() const {
     return vlSymsp->name();
 }
+
+//============================================================
+// Invoke final blocks
+
+void Vour_OnOff___024root___eval_final(Vour_OnOff___024root* vlSelf);
+
+VL_ATTR_COLD void Vour_OnOff::final() {
+    Vour_OnOff___024root___eval_final(&(vlSymsp->TOP));
+}
+
+//============================================================
+// Implementations of abstract methods from VerilatedModel
+
+const char* Vour_OnOff::hierName() const { return vlSymsp->name(); }
+const char* Vour_OnOff::modelName() const { return "Vour_OnOff"; }
+unsigned Vour_OnOff::threads() const { return 1; }

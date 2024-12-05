@@ -7,7 +7,7 @@
 #ifndef VERILATED_VOUR_ONOFF__SYMS_H_
 #define VERILATED_VOUR_ONOFF__SYMS_H_  // guard
 
-#include "verilated_heavy.h"
+#include "verilated.h"
 
 // INCLUDE MODEL CLASS
 
@@ -21,6 +21,7 @@ class Vour_OnOff__Syms final : public VerilatedSyms {
   public:
     // INTERNAL STATE
     Vour_OnOff* const __Vm_modelp;
+    VlDeleter __Vm_deleter;
     bool __Vm_didInit = false;
 
     // MODULE INSTANCE STATE
