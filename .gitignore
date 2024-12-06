@@ -6,10 +6,17 @@
 !/nanos-lite/*
 !/navy-apps/*
 !/npc/*
+!/nju_digital/*
 !Makefile
 !README.md
 !.gitignore
 !init.sh
+<<<<<<< HEAD
 /am-kernels
 /fceux-am
 /nvboard
+=======
+!/fceux-am/*
+!/nvboard/*
+!/am-kernels/*
+>>>>>>> PA0

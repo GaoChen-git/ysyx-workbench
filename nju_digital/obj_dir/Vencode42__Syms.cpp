@@ -1,16 +1,20 @@
 // Verilated -*- C++ -*-
 // DESCRIPTION: Verilator output: Symbol table implementation internals
 
-#include "Vour_OnOff__Syms.h"
-#include "Vour_OnOff.h"
-#include "Vour_OnOff___024root.h"
+#include "Vencode42__Syms.h"
+#include "Vencode42.h"
+#include "Vencode42___024root.h"
 
 // FUNCTIONS
-Vour_OnOff__Syms::~Vour_OnOff__Syms()
+Vencode42__Syms::~Vencode42__Syms()
 {
 }
 
+<<<<<<< HEAD:npc/obj_dir/Vour_OnOff__Syms.cpp
 Vour_OnOff__Syms::Vour_OnOff__Syms(VerilatedContext* contextp, const char* namep, Vour_OnOff* modelp)
+=======
+Vencode42__Syms::Vencode42__Syms(VerilatedContext* contextp, const char* namep,Vencode42* modelp)
+>>>>>>> PA0:nju_digital/obj_dir/Vencode42__Syms.cpp
     : VerilatedSyms{contextp}
     // Setup internal state of the Syms class
     , __Vm_modelp{modelp}
