@@ -57,11 +57,13 @@ static int cmd_help(char *args);
 
 //单步执行
 static int cmd_si(char *args) {
-  static int n;
-  if (args == NULL)
-    n = 1;
-  else
-    sscanf(args, "%d", &n);
+  int n = 1; // 默认步数
+  if (args != NULL) {
+    if (sscanf(args, "%d", &n) != 1 || n < 1) {
+      printf("Invalid argument. Usage: si [N], where N >= 1\n");
+      return 0;
+    }
+  }
   cpu_exec(n);
   return 0;
 }
