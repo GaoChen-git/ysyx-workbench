@@ -121,16 +121,7 @@ static int cmd_x(char *args) {
     for (int i = 0; i < n; i++) {
         paddr_t current_addr = addr + i * 4;
         word_t data = 0;
-
-        // 判断地址范围并选择读取方式
-        if (current_addr >= PMEM_LEFT && current_addr <= PMEM_RIGHT) {
-            // 使用物理地址读取
-            data = paddr_read(current_addr, 4);
-        } else {
-            // 使用虚拟地址读取
-            data = vaddr_read(current_addr, 4);
-        }
-
+        data = vaddr_read(current_addr, 4);
         printf("0x%08x: 0x%08x\n", current_addr, data);
     }
 
