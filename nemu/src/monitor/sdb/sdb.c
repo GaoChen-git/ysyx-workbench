@@ -19,6 +19,7 @@
 #include <readline/history.h>
 #include "sdb.h"
 #include <memory/paddr.h>
+#include <memory/vaddr.h>
 
 static int is_batch_mode = false;
 
@@ -92,29 +93,45 @@ static int cmd_x(char *args) {
         return 0;
     }
 
-    char *n_str = strtok(args, " ");  // 提取 N
-    char *expr_str = strtok(NULL, " ");  // 提取 EXPR
+    // 解析参数
+    char *n_str = strtok(args, " ");
+    char *expr_str = strtok(NULL, " ");
 
     if (n_str == NULL || expr_str == NULL) {
         printf("Usage: x N EXPR\n");
         return 0;
     }
 
+    // 转换 N
     int n = 0;
     if (sscanf(n_str, "%d", &n) != 1 || n <= 0) {
         printf("Invalid N. N should be a positive integer.\n");
         return 0;
     }
 
+    // 转换 EXPR 为地址
     paddr_t addr = 0;
     if (sscanf(expr_str, "%x", &addr) != 1) {
         printf("Invalid EXPR. EXPR should be a hexadecimal number.\n");
         return 0;
     }
 
-    printf("Scanning memory at address 0x%x:\n", addr);
+    // 扫描内存并打印
+    printf("Scanning memory from address 0x%x:\n", addr);
     for (int i = 0; i < n; i++) {
-        printf("0x%08x: 0x%08x\n", addr + i * 4, paddr_read(addr + i * 4, 4));
+        paddr_t current_addr = addr + i * 4;
+        word_t data = 0;
+
+        // 判断地址范围并选择读取方式
+        if (current_addr >= PMEM_LEFT && current_addr <= PMEM_RIGHT) {
+            // 使用物理地址读取
+            data = paddr_read(current_addr, 4);
+        } else {
+            // 使用虚拟地址读取
+            data = vaddr_read(current_addr, 4);
+        }
+
+        printf("0x%08x: 0x%08x\n", current_addr, data);
     }
 
     return 0;
