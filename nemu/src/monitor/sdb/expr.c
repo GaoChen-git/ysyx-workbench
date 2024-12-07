@@ -272,6 +272,7 @@ word_t eval(int p, int q, bool *success) {
 
 
 word_t expr(char *e, bool *success) {
+  printf("sizeof(tokens)/sizeof(Token))=%ld\n",sizeof(tokens)/sizeof(Token));
   if (!make_token(e)) {
     *success = false;
     return 0;
@@ -280,7 +281,7 @@ word_t expr(char *e, bool *success) {
   /* TODO: Insert codes to evaluate the expression. */
   *success = true;
   printf("nr_token=%d\n",nr_token);
-  printf("sizeof(tokens)/sizeof(Token))=%ld\n",sizeof(tokens)/sizeof(Token));
+
   // 调用 eval 函数计算表达式的值
   return eval(0, nr_token - 1, success);
 }
