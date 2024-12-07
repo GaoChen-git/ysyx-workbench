@@ -19,7 +19,7 @@
 #include <time.h>
 #include <assert.h>
 #include <string.h>
-#include <ctype.h>
+
 
 // this should be enough
 static char buf[65536] = {};
@@ -68,11 +68,10 @@ static void gen_rand_expr() {
 
   switch (rand() % 3) { // 随机选择表达式类型
     case 0: // 生成一个数字
-      gen_num();
-      break;
+      gen_num();    break;
     case 1: // 生成一个括号表达式
       if (strlen(buf) > 0 && (isdigit(buf[strlen(buf) - 1]) || buf[strlen(buf) - 1] == ')')) {
-        strcat(buf, "+"); // 如果前面是数字或右括号，插入运算符
+        gen_rand_op(); // 如果前面是数字或右括号，插入运算符
       }
       strcat(buf, "(");  // 插入左括号
       gen_rand_expr();   // 递归生成括号内的表达式

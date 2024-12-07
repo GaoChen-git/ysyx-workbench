@@ -29,12 +29,12 @@ void run_tests(const char *filename) {
     return;
   }
 
-  char line[65536];
+  char line[32];
   int total = 0, pass = 0;
 
   while (fgets(line, sizeof(line), fp)) {
     uint32_t expected;
-    char expr_buf[65536];
+    char expr_buf[32];
     // 从文件读取 "结果 表达式" 格式
     if (sscanf(line, "%u %[^\n]", &expected, expr_buf) != 2) {
       printf("Error: Invalid format in input file.\n");
