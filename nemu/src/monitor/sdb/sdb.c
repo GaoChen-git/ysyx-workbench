@@ -86,8 +86,18 @@ static int cmd_info(char *args) {
 
 //扫描内存
 static int cmd_x(char *args) {
+    char *N = strtok(NULL, " ");
+    char *EXPR = strtok(NULL, " ");
+    int addlen;
+    paddr_t addr;
+    sscanf(N, "%d", &addlen);
+    sscanf(EXPR, "%d", &addr);
+    word_t paddr_read(paddr_t addr, int len);
 
-  return 0;
+    for (int i=0; i < addlen; i++) {
+        printf("0x%x:\t0x%x\n", addr+4*i, paddr_read(addr+4*i,4));
+    }
+    return 0;
 }
 
 
