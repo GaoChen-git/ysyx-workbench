@@ -184,7 +184,6 @@ static int find_main_operator(int p, int q) {
             }
         }
     }
-    printf("Main operator at %d: %c\n", op, tokens[op].type);
     return op;  // 返回主运算符的位置
 }
 
@@ -199,7 +198,6 @@ word_t eval(int p, int q, bool *success) {
         uint32_t value = 0;
         if (tokens[p].type == TK_DEC) {
             // 解析十进制整数
-            printf("Parsed decimal %s -> %d\n", tokens[p].str, value);
             sscanf(tokens[p].str, "%d", &value);
         }
         else if (tokens[p].type == TK_HEX) {
@@ -231,10 +229,8 @@ word_t eval(int p, int q, bool *success) {
         }
         // 递归求值左右子表达式
         word_t val1 = eval(p, op - 1, success);
-        printf("Left operand: %u\n", val1);
         if (!*success) return 0;
         word_t val2 = eval(op + 1, q, success);
-        printf("Right operand: %u\n", val2);
         if (!*success) return 0;
         // 根据主运算符的类型计算结果
         switch (tokens[op].type) {
@@ -256,7 +252,6 @@ word_t eval(int p, int q, bool *success) {
 
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
-     printf("Tokenization failed for input: %s\n", e);
     *success = false;
     return 0;
   }
