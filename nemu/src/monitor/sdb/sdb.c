@@ -18,6 +18,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include <memory/paddr.h>
 
 static int is_batch_mode = false;
 
@@ -86,8 +87,6 @@ static int cmd_info(char *args) {
 
 //扫描内存
 static int cmd_x(char *args) {
-    word_t paddr_read(paddr_t addr, int len);
-
     if (args == NULL) {
         printf("Usage: x N EXPR\n");
         return 0;
