@@ -112,10 +112,12 @@ static bool make_token(char *e) {
             case TK_DEC:
             case TK_HEX:
             case TK_REG:
+                // 检查 token 的字符串长度，防止缓冲区溢出
                 if (substr_len >= sizeof(tokens[nr_token].str)) {
                     printf("Token string too long, buffer overflow prevented.\n");
                     return false;
                 }
+                // 记录 token 类型和内容
                 tokens[nr_token].type = rules[i].token_type;
                 strncpy(tokens[nr_token].str, substr_start, substr_len);
                 tokens[nr_token].str[substr_len] = '\0'; // Null-terminate the string
@@ -142,95 +144,109 @@ static bool make_token(char *e) {
 }
 
 static bool check_parentheses(int p, int q) {
-  if (tokens[p].type != '(' || tokens[q].type != ')') return false;
+    // 检查子表达式是否被一对括号包围
+    if (tokens[p].type != '(' || tokens[q].type != ')') return false;
 
-  int balance = 0;
-  for (int i = p; i <= q; i++) {
-    if (tokens[i].type == '(') balance++;
-    if (tokens[i].type == ')') balance--;
-    if (balance < 0) return false; // 不匹配
-  }
-  return balance == 0;
+    int balance = 0;
+    for (int i = p; i <= q; i++) {
+        if (tokens[i].type == '(') balance++;   // 遇到左括号，增加计数
+        if (tokens[i].type == ')') balance--;   // 遇到右括号，减少计数
+        if (balance < 0) return false;  // 括号不匹配
+    }
+    // 只有括号完全匹配时才返回 true
+    return balance == 0;
 }
 
 static int find_main_operator(int p, int q) {
-  int op = -1, min_precedence = 10; // 假设最低优先级为 10
-  int balance = 0;
+    int op = -1, min_precedence = 10; // 假设最低优先级为 10
+    int balance = 0;
 
-  for (int i = p; i <= q; i++) {
-    if (tokens[i].type == '(') balance++;
-    if (tokens[i].type == ')') balance--;
+    for (int i = p; i <= q; i++) {
+        // 跳过括号内部的内容
+        if (tokens[i].type == '(') balance++;
+        if (tokens[i].type == ')') balance--;
 
-    if (balance == 0) {
-      int precedence = 0;
-      switch (tokens[i].type) {
-        case TK_AND:
-        case TK_OR: precedence = 1; break; // 最低优先级
-        case '+':
-        case '-': precedence = 2; break;
-        case '*':
-        case '/': precedence = 3; break;
-      }
-
-      if (precedence <= min_precedence) {
-        min_precedence = precedence;
-        op = i;
-      }
+        // 当前 token 不在括号中
+        if (balance == 0) {
+            int precedence = 0;
+            switch (tokens[i].type) {
+            case TK_AND:
+            case TK_OR: precedence = 1; break;  // 最低优先级
+            case '+':
+            case '-': precedence = 2; break;    // 中等优先级
+            case '*':
+            case '/': precedence = 3; break;    // 高优先级
+            }
+            // 选择优先级最低的运算符作为主运算符
+            if (precedence <= min_precedence) {
+                min_precedence = precedence;
+                op = i;
+            }
+        }
     }
-  }
-  return op;
+    return op;  // 返回主运算符的位置
 }
 
 word_t eval(int p, int q, bool *success) {
-  if (p > q) {
-    *success = false;
-    return 0;
-  }
-  else if (p == q) {
-    // 处理单个 token
-    uint32_t value = 0;
-    if (tokens[p].type == TK_DEC) {
-      sscanf(tokens[p].str, "%d", &value);
-    } else if (tokens[p].type == TK_HEX) {
-      sscanf(tokens[p].str, "%x", &value);
-    } else if (tokens[p].type == TK_REG) {
-      value = isa_reg_str2val(tokens[p].str + 1, success); // 寄存器
-      if (!*success) return 0;
-    } else {
-      *success = false;
-      return 0;
+    if (p > q) {
+        // 空表达式，非法
+        *success = false;
+        return 0;
     }
-    return value;
-  }
-  else if (check_parentheses(p, q)) {
-    return eval(p + 1, q - 1, success);
-  }
-  else {
-    int op = find_main_operator(p, q);
-    if (op == -1) {
-      *success = false;
-      return 0;
-    }
-
-    word_t val1 = eval(p, op - 1, success);
-    if (!*success) return 0;
-    word_t val2 = eval(op + 1, q, success);
-    if (!*success) return 0;
-
-    switch (tokens[op].type) {
-      case '+': return val1 + val2;
-      case '-': return val1 - val2;
-      case '*': return val1 * val2;
-      case '/':
-        if (val2 == 0) {
-          printf("Division by zero error\n");
-          *success = false;
-          return 0;
+    else if (p == q) {
+        // 处理单个 token，单个token，必须是一个数字或寄存器
+        uint32_t value = 0;
+        if (tokens[p].type == TK_DEC) {
+            // 解析十进制整数
+            sscanf(tokens[p].str, "%d", &value);
         }
-        return val1 / val2;
-      default: assert(0);
+        else if (tokens[p].type == TK_HEX) {
+            // 解析十六进制整数
+            sscanf(tokens[p].str, "%x", &value);
+        }
+        else if (tokens[p].type == TK_REG) {
+            // 获取寄存器的值
+            value = isa_reg_str2val(tokens[p].str + 1, success); // 寄存器
+            if (!*success) return 0;    // 获取失败，返回错误
+        }
+        else {
+            // 非法的单个 token
+            *success = false;
+            return 0;
+        }
+        return value;
     }
-  }
+    else if (check_parentheses(p, q)) {
+        // 如果整个表达式被括号包围，递归去掉外层括号
+        return eval(p + 1, q - 1, success);
+    }
+    else {
+        // 查找主运算符
+        int op = find_main_operator(p, q);
+        if (op == -1) {
+            *success = false;   // 没有找到主运算符
+            return 0;
+        }
+        // 递归求值左右子表达式
+        word_t val1 = eval(p, op - 1, success);
+        if (!*success) return 0;
+        word_t val2 = eval(op + 1, q, success);
+        if (!*success) return 0;
+        // 根据主运算符的类型计算结果
+        switch (tokens[op].type) {
+            case '+': return val1 + val2;
+            case '-': return val1 - val2;
+            case '*': return val1 * val2;
+            case '/':
+            if (val2 == 0) {
+                printf("Division by zero error\n");
+                *success = false;
+                return 0;   // 除零错误
+            }
+            return val1 / val2;
+            default: assert(0);     // 不支持的运算符
+        }
+    }
 }
 
 
@@ -242,5 +258,6 @@ word_t expr(char *e, bool *success) {
 
   /* TODO: Insert codes to evaluate the expression. */
   *success = true;
+  // 调用 eval 函数计算表达式的值
   return eval(0, nr_token - 1, success);
 }
