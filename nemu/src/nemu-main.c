@@ -29,7 +29,7 @@ void run_tests(const char *filename) {
     return;
   }
 
-  char line[32];
+  char line[65535];
   int total = 0, pass = 0;
 
   while (fgets(line, sizeof(line), fp)) {
