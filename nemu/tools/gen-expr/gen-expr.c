@@ -1,5 +1,5 @@
 /***************************************************************************************
-* Copyright (c) 2014-2022 Zihao Yu, Nanjing University
+* Copyright (c) 2014-2021 Zihao Yu, Nanjing University
 *
 * NEMU is licensed under Mulan PSL v2.
 * You can use this software according to the terms and conditions of the Mulan PSL v2.
@@ -20,7 +20,6 @@
 #include <assert.h>
 #include <string.h>
 
-
 // this should be enough
 static char buf[65536] = {};
 static char code_buf[65536 + 128] = {}; // a little larger than `buf`
@@ -32,63 +31,70 @@ static char *code_format =
 "  return 0; "
 "}";
 
-// 生成一个随机数字
-static void gen_num() {
-  char num[12];
-  sprintf(num, "%u", rand() % 100); // 随机生成 0-99 的数字
+static char *pbuf;
 
-  // 检查缓冲区最后一个字符是否是数字或右括号
-  // 如果是，则需要插入一个运算符，防止非法表达式
-  if (strlen(buf) > 0 && (isdigit(buf[strlen(buf) - 1]) || buf[strlen(buf) - 1] == ')')) {
-    strcat(buf, "+"); // 默认插入加号，确保语法合法
-  }
-  strcat(buf, num); // 将生成的数字追加到缓冲区
+#define format_buf(fmt, ...) pbuf += sprintf(pbuf, fmt, ##__VA_ARGS__)
+
+static inline uint32_t choose(uint32_t max) {
+  return rand() % max;
 }
 
-// 生成一个随机运算符
-static void gen_rand_op() {
-  // 检查缓冲区最后一个字符是否是运算符或左括号
-  // 如果是，则需要插入一个数字，防止连续运算符
-  if (strlen(buf) == 0 || buf[strlen(buf) - 1] == '(' ||
-      buf[strlen(buf) - 1] == '+' || buf[strlen(buf) - 1] == '-' ||
-      buf[strlen(buf) - 1] == '*' || buf[strlen(buf) - 1] == '/') {
-    gen_num(); // 如果位置不合法，插入一个数字
-  }
-
-  char op = "+-*/"[rand() % 4]; // 随机选择一个运算符
-  size_t len = strlen(buf);
-  buf[len] = op; // 将运算符追加到缓冲区
-  buf[len + 1] = '\0'; // 添加字符串结束符
+static inline void gen_rand_op() {
+  char op_list[] = {'+', '-', '*', '/', '+', '-', '*'};
+  format_buf("%c", op_list[choose(7)]);
 }
 
-// 生成一个随机表达式
-static void gen_rand_expr() {
-  // 防止缓冲区溢出
-  if (strlen(buf) > 65535 - 50) return;
+static inline void gen_num() {
+  format_buf("%uu", rand());
+}
 
-  switch (rand() % 3) { // 随机选择表达式类型
-    case 0: // 生成一个数字
-      gen_num();    break;
-    case 1: // 生成一个括号表达式
-      if (strlen(buf) > 0 && (isdigit(buf[strlen(buf) - 1]) || buf[strlen(buf) - 1] == ')')) {
-        gen_rand_op(); // 如果前面是数字或右括号，插入运算符
+static inline void gen_space() {
+  char *space_list[3] = {
+    "",
+    " ",
+    "  ",
+  };
+  format_buf("%s", space_list[choose(3)]);
+}
+
+static int nr_op = 0;
+
+static inline void gen_rand_expr() {
+  gen_space();
+  switch (choose(3)) {
+    default:
+      if (nr_op == 0) gen_rand_expr();
+      else gen_num();
+      break;
+    case 1:
+      format_buf("(");
+      gen_rand_expr();
+      format_buf(")");
+      break;
+    case 0:
+      nr_op ++;
+      if (pbuf - buf >= sizeof(buf) / 2) {
+        gen_num();
+        break;
       }
-      strcat(buf, "(");  // 插入左括号
-      gen_rand_expr();   // 递归生成括号内的表达式
-      strcat(buf, ")");  // 插入右括号
-      break;
-    default: // 生成二元表达式
-      gen_rand_expr();   // 生成左子表达式
-      gen_rand_op();     // 插入运算符
-      gen_rand_expr();   // 生成右子表达式
+      gen_rand_expr();
+      gen_space();
+      gen_rand_op();
+      gen_space();
+      gen_rand_expr();
       break;
   }
+  gen_space();
 }
 
-
-// static void gen_rand_expr() {
-//   buf[0] = '\0';
-// }
+void remove_u(char *p) {
+  char *q = p;
+  while ((q = strchr(q, 'u')) != NULL) {
+    // reuse code_buf
+    strcpy(code_buf, q + 1);
+    strcpy(q, code_buf);
+  }
+}
 
 int main(int argc, char *argv[]) {
   int seed = time(0);
@@ -99,6 +105,8 @@ int main(int argc, char *argv[]) {
   }
   int i;
   for (i = 0; i < loop; i ++) {
+    nr_op = 0;
+    pbuf = buf;
     gen_rand_expr();
 
     sprintf(code_buf, code_format, buf);
@@ -115,8 +123,14 @@ int main(int argc, char *argv[]) {
     assert(fp != NULL);
 
     int result;
-    ret = fscanf(fp, "%d", &result);
-    pclose(fp);
+    if (fscanf(fp, "%d", &result) != 1) {
+        fprintf(stderr, "Error: Failed to read result from subprocess.\n");
+        result = 0; // 给 result 一个默认值，防止后续逻辑出错
+    }
+    ret = pclose(fp);
+    if (ret != 0) continue;
+
+    remove_u(buf);
 
     printf("%u %s\n", result, buf);
   }
