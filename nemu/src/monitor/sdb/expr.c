@@ -106,7 +106,26 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
-          default: TODO();
+            case TK_NOTYPE:
+                // 跳过空格串
+                break;
+            case TK_DEC:
+            case TK_HEX:
+            case TK_REG:
+                if (substr_len >= sizeof(tokens[nr_token].str)) {
+                    printf("Token string too long, buffer overflow prevented.\n");
+                    return false;
+                }
+                tokens[nr_token].type = rules[i].token_type;
+                strncpy(tokens[nr_token].str, substr_start, substr_len);
+                tokens[nr_token].str[substr_len] = '\0'; // Null-terminate the string
+                nr_token++;
+                break;
+            default:
+                // 对于运算符或括号，直接记录类型
+                tokens[nr_token].type = rules[i].token_type;
+                nr_token++;
+                break;
         }
 
         break;
@@ -122,6 +141,98 @@ static bool make_token(char *e) {
   return true;
 }
 
+static bool check_parentheses(int p, int q) {
+  if (tokens[p].type != '(' || tokens[q].type != ')') return false;
+
+  int balance = 0;
+  for (int i = p; i <= q; i++) {
+    if (tokens[i].type == '(') balance++;
+    if (tokens[i].type == ')') balance--;
+    if (balance < 0) return false; // 不匹配
+  }
+  return balance == 0;
+}
+
+static int find_main_operator(int p, int q) {
+  int op = -1, min_precedence = 10; // 假设最低优先级为 10
+  int balance = 0;
+
+  for (int i = p; i <= q; i++) {
+    if (tokens[i].type == '(') balance++;
+    if (tokens[i].type == ')') balance--;
+
+    if (balance == 0) {
+      int precedence = 0;
+      switch (tokens[i].type) {
+        case TK_AND:
+        case TK_OR: precedence = 1; break; // 最低优先级
+        case '+':
+        case '-': precedence = 2; break;
+        case '*':
+        case '/': precedence = 3; break;
+      }
+
+      if (precedence <= min_precedence) {
+        min_precedence = precedence;
+        op = i;
+      }
+    }
+  }
+  return op;
+}
+
+word_t eval(int p, int q, bool *success) {
+  if (p > q) {
+    *success = false;
+    return 0;
+  }
+  else if (p == q) {
+    // 处理单个 token
+    uint32_t value = 0;
+    if (tokens[p].type == TK_DEC) {
+      sscanf(tokens[p].str, "%d", &value);
+    } else if (tokens[p].type == TK_HEX) {
+      sscanf(tokens[p].str, "%x", &value);
+    } else if (tokens[p].type == TK_REG) {
+      value = isa_reg_str2val(tokens[p].str + 1, success); // 寄存器
+      if (!*success) return 0;
+    } else {
+      *success = false;
+      return 0;
+    }
+    return value;
+  }
+  else if (check_parentheses(p, q)) {
+    return eval(p + 1, q - 1, success);
+  }
+  else {
+    int op = find_main_operator(p, q);
+    if (op == -1) {
+      *success = false;
+      return 0;
+    }
+
+    word_t val1 = eval(p, op - 1, success);
+    if (!*success) return 0;
+    word_t val2 = eval(op + 1, q, success);
+    if (!*success) return 0;
+
+    switch (tokens[op].type) {
+      case '+': return val1 + val2;
+      case '-': return val1 - val2;
+      case '*': return val1 * val2;
+      case '/':
+        if (val2 == 0) {
+          printf("Division by zero error\n");
+          *success = false;
+          return 0;
+        }
+        return val1 / val2;
+      default: assert(0);
+    }
+  }
+}
+
 
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
@@ -130,7 +241,6 @@ word_t expr(char *e, bool *success) {
   }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
-
-  return 0;
+  *success = true;
+  return eval(0, nr_token - 1, success);
 }
