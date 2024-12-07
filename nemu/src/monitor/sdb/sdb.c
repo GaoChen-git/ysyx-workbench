@@ -57,35 +57,39 @@ static int cmd_help(char *args);
 
 //单步执行
 static int cmd_si(char *args) {
-  int n = 1; // 默认步数
+  int n = 1; // 默认单步执行 1 条指令
   if (args != NULL) {
-    if (sscanf(args, "%d", &n) != 1 || n < 1) {
+    if (sscanf(args, "%d", &n) != 1 || n < 1) { // 检查参数合法性
       printf("Invalid argument. Usage: si [N], where N >= 1\n");
       return 0;
     }
   }
-  cpu_exec(n);
+  cpu_exec(n); // 调用框架函数执行指令
   return 0;
 }
 //打印寄存器
 static int cmd_info(char *args) {
+  // 提取子命令（如 "r"）
   char *arg = strtok(NULL, " ");
   if (arg == NULL) {
-    printf("please add parameters\n");
-  }
-  else if (strcmp(arg, "r") == 0) {
-    isa_reg_display();// nemu/src/isa/$ISA/reg.c
-  }
-  else {
-    printf("invalid command\n");
+    // 用户未提供子命令
+    printf("Please provide a subcommand: r (registers)\n");
+  } else if (strcmp(arg, "r") == 0) {
+    // 调用 API 打印寄存器
+    isa_reg_display();
+  } else {
+    // 未识别的子命令
+    printf("Invalid subcommand. Supported: r\n");
   }
   return 0;
 }
 
 //扫描内存
 static int cmd_x(char *args) {
+
   return 0;
 }
+
 
 static int cmd_p(char *args) {
 
