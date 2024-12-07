@@ -260,5 +260,6 @@ word_t expr(char *e, bool *success) {
   /* TODO: Insert codes to evaluate the expression. */
   *success = true;
   // 调用 eval 函数计算表达式的值
+  printf("nr_token=%d\n",nr_token);
   return eval(0, nr_token - 1, success);
 }
