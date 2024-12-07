@@ -158,8 +158,8 @@ static bool check_parentheses(int p, int q) {
 }
 
 static int find_main_operator(int p, int q) {
-    int op = -1, min_precedence = 10; // 假设最低优先级为 10
-    int balance = 0;
+    int op = -1, min_precedence = 10; // 设最低优先级为10
+    int balance = 0;    // 括号平衡计数器
 
     for (int i = p; i <= q; i++) {
         // 跳过括号内部的内容
@@ -176,8 +176,9 @@ static int find_main_operator(int p, int q) {
             case '-': precedence = 2; break;    // 中等优先级
             case '*':
             case '/': precedence = 3; break;    // 高优先级
+            default: continue; // 跳过非运算符 token
             }
-            // 选择优先级最低的运算符作为主运算符
+            // 更新主运算符,选择优先级最低的运算符作为主运算符
             if (precedence <= min_precedence) {
                 min_precedence = precedence;
                 op = i;
@@ -190,11 +191,15 @@ static int find_main_operator(int p, int q) {
 
 word_t eval(int p, int q, bool *success) {
     if (p > q) {
-        // 空表达式，非法
+        /* Bad expression */
         *success = false;
         return 0;
     }
     else if (p == q) {
+        /* Single token.
+         * For now this token should be a number.
+         * Return the value of the number.
+         */
         // 处理单个 token，单个token，必须是一个数字或寄存器
         uint32_t value = 0;
         if (tokens[p].type == TK_DEC) {
@@ -220,8 +225,10 @@ word_t eval(int p, int q, bool *success) {
         }
         return value;
     }
-    else if (check_parentheses(p, q)) {
-        // 如果整个表达式被括号包围，递归去掉外层括号
+    else if (check_parentheses(p, q) == true) {
+        /* The expression is surrounded by a matched pair of parentheses.
+         * If that is the case, just throw away the parentheses.
+         */
         return eval(p + 1, q - 1, success);
     }
     else {
@@ -264,6 +271,8 @@ word_t expr(char *e, bool *success) {
 
   /* TODO: Insert codes to evaluate the expression. */
   *success = true;
+  printf("nr_token=%d\n",nr_token);
+  printf("nr_token=%d\n",nr_token);
   // 调用 eval 函数计算表达式的值
   return eval(0, nr_token - 1, success);
 }
