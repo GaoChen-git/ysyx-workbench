@@ -184,6 +184,7 @@ static int find_main_operator(int p, int q) {
             }
         }
     }
+    printf("Main operator at %d: %c\n", op, tokens[op].type);
     return op;  // 返回主运算符的位置
 }
 
