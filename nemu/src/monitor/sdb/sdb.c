@@ -86,17 +86,38 @@ static int cmd_info(char *args) {
 
 //扫描内存
 static int cmd_x(char *args) {
-    char *N = strtok(NULL, " ");
-    char *EXPR = strtok(NULL, " ");
-    int addlen;
-    paddr_t addr;
-    sscanf(N, "%d", &addlen);
-    sscanf(EXPR, "%d", &addr);
     word_t paddr_read(paddr_t addr, int len);
 
-    for (int i=0; i < addlen; i++) {
-        printf("0x%x:\t0x%x\n", addr+4*i, paddr_read(addr+4*i,4));
+    if (args == NULL) {
+        printf("Usage: x N EXPR\n");
+        return 0;
     }
+
+    char *n_str = strtok(args, " ");  // 提取 N
+    char *expr_str = strtok(NULL, " ");  // 提取 EXPR
+
+    if (n_str == NULL || expr_str == NULL) {
+        printf("Usage: x N EXPR\n");
+        return 0;
+    }
+
+    int n = 0;
+    if (sscanf(n_str, "%d", &n) != 1 || n <= 0) {
+        printf("Invalid N. N should be a positive integer.\n");
+        return 0;
+    }
+
+    paddr_t addr = 0;
+    if (sscanf(expr_str, "%x", &addr) != 1) {
+        printf("Invalid EXPR. EXPR should be a hexadecimal number.\n");
+        return 0;
+    }
+
+    printf("Scanning memory at address 0x%x:\n", addr);
+    for (int i = 0; i < n; i++) {
+        printf("0x%08x: 0x%08x\n", addr + i * 4, paddr_read(addr + i * 4, 4));
+    }
+
     return 0;
 }
 
