@@ -184,7 +184,7 @@ static int find_main_operator(int p, int q) {
             }
         }
     }
-    printf("Main operator at %d: %c\n", op, op != -1 ? tokens[op].type : ' ');
+    printf("Main operator at %d: %c\n", op, op != -1 ? tokens[op].type : ' ');//debug printf
     return op;  // 返回主运算符的位置
 }
 
@@ -200,14 +200,17 @@ word_t eval(int p, int q, bool *success) {
         if (tokens[p].type == TK_DEC) {
             // 解析十进制整数
             sscanf(tokens[p].str, "%d", &value);
+            printf("Parsed decimal %s -> %u\n", tokens[p].str, value);//debug printf
         }
         else if (tokens[p].type == TK_HEX) {
             // 解析十六进制整数
             sscanf(tokens[p].str, "%x", &value);
+            printf("Parsed hexadecimal %s -> %u\n", tokens[p].str, value);//debug printf
         }
         else if (tokens[p].type == TK_REG) {
             // 获取寄存器的值
             value = isa_reg_str2val(tokens[p].str + 1, success); // 寄存器
+            printf("Parsed register %s -> %u\n", tokens[p].str, value);//debug printf
             if (!*success) return 0;    // 获取失败，返回错误
         }
         else {
@@ -230,8 +233,10 @@ word_t eval(int p, int q, bool *success) {
         }
         // 递归求值左右子表达式
         word_t val1 = eval(p, op - 1, success);
+        printf("Left operand: %u\n", val1);//debug printf
         if (!*success) return 0;
         word_t val2 = eval(op + 1, q, success);
+        printf("Right operand: %u\n", val2);//debug printf
         if (!*success) return 0;
         // 根据主运算符的类型计算结果
         switch (tokens[op].type) {
@@ -260,6 +265,5 @@ word_t expr(char *e, bool *success) {
   /* TODO: Insert codes to evaluate the expression. */
   *success = true;
   // 调用 eval 函数计算表达式的值
-  printf("nr_token=%d\n",nr_token);
   return eval(0, nr_token - 1, success);
 }
