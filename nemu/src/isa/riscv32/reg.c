@@ -24,6 +24,14 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
+    printf("Register State:\n");
+    for (int i = 0; i < 32; i++) {
+        printf("%-3s: 0x%08x\t", regs[i], cpu.gpr[i]);
+        if ((i + 1) % 4 == 0) {
+        printf("\n");
+        }
+    }
+    printf("PC : 0x%08x\n", cpu.pc); // 打印程序计数器
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {

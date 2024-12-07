@@ -7,7 +7,7 @@
 #ifndef VERILATED_VENCODE42__SYMS_H_
 #define VERILATED_VENCODE42__SYMS_H_  // guard
 
-#include "verilated_heavy.h"
+#include "verilated.h"
 
 // INCLUDE MODEL CLASS
 
@@ -20,9 +20,14 @@
 class Vencode42__Syms final : public VerilatedSyms {
   public:
     // INTERNAL STATE
+<<<<<<< HEAD:npc/obj_dir/Vour_OnOff__Syms.h
+    Vour_OnOff* const __Vm_modelp;
+    VlDeleter __Vm_deleter;
+=======
     Vencode42* const __Vm_modelp;
     bool __Vm_activity = false;  ///< Used by trace routines to determine change occurred
     uint32_t __Vm_baseCode = 0;  ///< Used by trace routines when tracing multiple models
+>>>>>>> PA0:nju_digital/obj_dir/Vencode42__Syms.h
     bool __Vm_didInit = false;
 
     // MODULE INSTANCE STATE

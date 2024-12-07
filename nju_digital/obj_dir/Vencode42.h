@@ -8,7 +8,7 @@
 #ifndef VERILATED_VENCODE42_H_
 #define VERILATED_VENCODE42_H_  // guard
 
-#include "verilated_heavy.h"
+#include "verilated.h"
 
 class Vencode42__Syms;
 class Vencode42___024root;
@@ -17,7 +17,11 @@ class Vencode42_VerilatedVcd;
 
 
 // This class is the main interface to the Verilated model
+<<<<<<< HEAD:npc/obj_dir/Vour_OnOff.h
+class Vour_OnOff VL_NOT_FINAL : public VerilatedModel {
+=======
 class Vencode42 VL_NOT_FINAL {
+>>>>>>> PA0:nju_digital/obj_dir/Vencode42.h
   private:
     // Symbol table holding complete model state (owned by this class)
     Vencode42__Syms* const vlSymsp;
@@ -62,13 +66,25 @@ class Vencode42 VL_NOT_FINAL {
     void eval_end_step() {}
     /// Simulation complete, run final blocks.  Application must call on completion.
     void final();
+<<<<<<< HEAD:npc/obj_dir/Vour_OnOff.h
+    /// Are there scheduled events to handle?
+    bool eventsPending();
+    /// Returns time at next time slot. Aborts if !eventsPending()
+    uint64_t nextTimeSlot();
+=======
     /// Trace signals in the model; called by application code
     void trace(VerilatedVcdC* tfp, int levels, int options = 0);
     /// Return current simulation context for this model.
     /// Used to get to e.g. simulation time via contextp()->time()
     VerilatedContext* contextp() const;
+>>>>>>> PA0:nju_digital/obj_dir/Vencode42.h
     /// Retrieve name of this model instance (as passed to constructor).
     const char* name() const;
+
+    // Abstract methods from VerilatedModel
+    const char* hierName() const override final;
+    const char* modelName() const override final;
+    unsigned threads() const override final;
 } VL_ATTR_ALIGNED(VL_CACHE_LINE_BYTES);
 
 #endif  // guard

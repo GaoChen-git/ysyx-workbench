@@ -21,10 +21,9 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ,
-
-  /* TODO: Add more token types */
-
+  TK_NOTYPE = 256, TK_EQ, TK_NEQ, TK_AND, TK_OR, TK_NOT,
+  TK_HEX, TK_DEC, TK_REG,
+  // 运算符的 ASCII 值如 '+', '-', '*' 等直接作为 token_type
 };
 
 static struct rule {
@@ -36,9 +35,21 @@ static struct rule {
    * Pay attention to the precedence level of different rules.
    */
 
-  {" +", TK_NOTYPE},    // spaces
-  {"\\+", '+'},         // plus
-  {"==", TK_EQ},        // equal
+  {" +", TK_NOTYPE},        // 空格 (跳过不处理)
+  {"\\+", '+'},             // 加号
+  {"-", '-'},               // 减号
+  {"\\*", '*'},             // 乘号
+  {"/", '/'},               // 除号
+  {"\\(", '('},             // 左括号
+  {"\\)", ')'},             // 右括号
+  {"0x[0-9a-fA-F]+", TK_HEX}, // 十六进制整数
+  {"[0-9]+", TK_DEC},       // 十进制整数
+  {"==", TK_EQ},            // 等于
+  {"!=", TK_NEQ},           // 不等于
+  {"&&", TK_AND},           // 逻辑与
+  {"\\|\\|", TK_OR},        // 逻辑或
+  {"!", TK_NOT},            // 逻辑非
+  {"\\$[a-zA-Z][a-zA-Z0-9]*", TK_REG}, // 寄存器 (例如 $eax)
 };
 
 #define NR_REGEX ARRLEN(rules)

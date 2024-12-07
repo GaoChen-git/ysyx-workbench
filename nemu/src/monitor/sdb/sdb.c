@@ -18,6 +18,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include <memory/paddr.h>
+#include <memory/vaddr.h>
 
 static int is_batch_mode = false;
 
@@ -49,6 +51,7 @@ static int cmd_c(char *args) {
 
 
 static int cmd_q(char *args) {
+  nemu_state.state = NEMU_QUIT;
   return -1;
 }
 
@@ -56,37 +59,79 @@ static int cmd_help(char *args);
 
 //单步执行
 static int cmd_si(char *args) {
-  static int n;
-  if (args == NULL)
-    n = 1;
-  else
-    sscanf(args, "%d", &n);
-  cpu_exec(n);
+  int n = 1; // 默认单步执行 1 条指令
+  if (args != NULL) {
+    if (sscanf(args, "%d", &n) != 1 || n < 1) { // 检查参数合法性
+      printf("Invalid argument. Usage: si [N], where N >= 1\n");
+      return 0;
+    }
+  }
+  cpu_exec(n); // 调用框架函数执行指令
   return 0;
 }
 //打印寄存器
 static int cmd_info(char *args) {
+  // 提取子命令（如 "r"）
   char *arg = strtok(NULL, " ");
   if (arg == NULL) {
-    printf("please add parameters\n");
-  }
-  else if (strcmp(arg, "r") == 0) {
-    isa_reg_display();// nemu/src/isa/$ISA/reg.c
-  }
-  else {
-    printf("invalid command\n");
+    // 用户未提供子命令
+    printf("Please provide a subcommand: r (registers)\n");
+  } else if (strcmp(arg, "r") == 0) {
+    // 调用 API 打印寄存器
+    isa_reg_display();
+  } else {
+    // 未识别的子命令
+    printf("Invalid subcommand. Supported: r\n");
   }
   return 0;
 }
 
 //扫描内存
 static int cmd_x(char *args) {
-  return 0;
+    if (args == NULL) {
+        printf("Usage: x N EXPR\n");
+        return 0;
+    }
+
+    // 解析参数
+    char *n_str = strtok(args, " ");
+    char *expr_str = strtok(NULL, " ");
+
+    if (n_str == NULL || expr_str == NULL) {
+        printf("Usage: x N EXPR\n");
+        return 0;
+    }
+
+    // 转换 N
+    int n = 0;
+    if (sscanf(n_str, "%d", &n) != 1 || n <= 0) {
+        printf("Invalid N. N should be a positive integer.\n");
+        return 0;
+    }
+
+    // 转换 EXPR 为地址
+    paddr_t addr = 0;
+    if (sscanf(expr_str, "%x", &addr) != 1) {
+        printf("Invalid EXPR. EXPR should be a hexadecimal number.\n");
+        return 0;
+    }
+
+    // 扫描内存并打印
+    printf("Scanning memory from address 0x%x:\n", addr);
+    for (int i = 0; i < n; i++) {
+        paddr_t current_addr = addr + i * 4;
+        word_t data = 0;
+        data = vaddr_read(current_addr, 4);
+        printf("0x%08x: 0x%08x\n", current_addr, data);
+    }
+
+    return 0;
 }
 
+
 static int cmd_p(char *args) {
-  
-  
+
+
   return 0;
 }
 
