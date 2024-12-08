@@ -266,9 +266,8 @@ word_t eval(int p, int q, bool *success) {
             case '/':
             if (val2 == 0) {
                 // 打印红色错误信息
-                printf("\033[31mError: Division by zero!\n");
-                printf("Operator: %c, Left operand: %u, Right operand: %u\033[0m\n",
-                    tokens[op].type, val1, val2);
+                printf("\033[31mError: Division by zero!\n");//debug printf
+                printf("Operator: %c, Left operand: %u, Right operand: %u\033[0m\n", tokens[op].type, val1, val2);//debug printf
                 *success = false;
                 return 0;   // 除零错误
             }
