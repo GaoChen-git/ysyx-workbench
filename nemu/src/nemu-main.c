@@ -32,6 +32,10 @@ void run_tests(const char *filename) {
   char line[65535];
   int total = 0, pass = 0;
 
+  // 存储 mismatch 信息
+  char mismatches[100][100];
+  int mismatch_count = 0;
+
   while (fgets(line, sizeof(line), fp)) {
     uint32_t expected;
     char expr_buf[65535];
@@ -46,16 +50,23 @@ void run_tests(const char *filename) {
     uint32_t result = expr(expr_buf, &success);
 
     if (success && result == expected) {
-      printf("Match: expected %u, got %u, expr = %s\n", expected, result, expr_buf);
       pass++;
-    } else {
-      printf("Mismatch: expected %u, got %u, expr = %s\n", expected, result, expr_buf);
+    }
+    else {
+      snprintf(mismatches[mismatch_count], 100,
+               "Mismatch: expected %u, got %u, expr = %.s", expected, result, expr_buf); // 限制 expr_buf 最大长度
+      mismatch_count++;
     }
 
     total++;
   }
 
   fclose(fp);
+  // 打印所有 mismatch 信息
+  for (int i = 0; i < mismatch_count; i++) {
+    printf("%s\n", mismatches[i]);
+  }
+
   printf("Test Results: Passed %d/%d tests.\n", pass, total);
 }
 
