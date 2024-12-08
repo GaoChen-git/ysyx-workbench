@@ -153,16 +153,21 @@ static bool make_token(char *e) {
 
 static bool check_parentheses(int p, int q) {
     // 检查子表达式是否被一对括号包围
-    if (tokens[p].type != '(' || tokens[q].type != ')') return false;
-
-    int balance = 0;
-    for (int i = p; i <= q; i++) {
-        if (tokens[i].type == '(') balance++;   // 遇到左括号，增加计数
-        if (tokens[i].type == ')') balance--;   // 遇到右括号，减少计数
-        if (balance < 0) return false;  // 括号不匹配
+    if (tokens[p].type != '(' || tokens[q].type != ')')
+    {
+        return false;
     }
-    // 只有括号完全匹配时才返回 true
-    return balance == 0;
+    else
+    {
+        int balance = 0;
+        for (int i = p+1; i < q; i++) {
+            if (tokens[i].type == '(') balance++;   // 遇到左括号，增加计数
+            if (tokens[i].type == ')') balance--;   // 遇到右括号，减少计数
+            if (balance < 0) return false;  // 括号不匹配
+        }
+        // 只有括号完全匹配时才返回 true
+        return balance == 0;
+    }
 }
 
 static int find_main_operator(int p, int q) {
