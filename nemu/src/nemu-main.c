@@ -46,6 +46,7 @@ void run_tests(const char *filename) {
     uint32_t result = expr(expr_buf, &success);
 
     if (success && result == expected) {
+      printf("Match: expected %u, got %u, expr = %s\n", expected, result, expr_buf);
       pass++;
     } else {
       printf("Mismatch: expected %u, got %u, expr = %s\n", expected, result, expr_buf);
