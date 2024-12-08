@@ -14,5 +14,7 @@
 #**************************************************************************************/
 
 NAME = gen-expr
-SRCS = gen-expr.c
+SRCS = $(NAME).c
+
+# 引入全局编译规则
 include $(NEMU_HOME)/scripts/build.mk
