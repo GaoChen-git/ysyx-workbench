@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <isa.h>
+#include <memory/vaddr.h>
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
@@ -22,7 +23,7 @@
 
 enum {
   TK_NOTYPE = 256, TK_EQ, TK_NEQ, TK_AND, TK_OR, TK_NOT,
-  TK_HEX, TK_DEC, TK_REG,
+  TK_HEX, TK_DEC, TK_REG, DEREF,
   // 运算符的 ASCII 值如 '+', '-', '*' 等直接作为 token_type
 };
 
@@ -214,7 +215,7 @@ word_t eval(int p, int q, bool *success) {
          * Return the value of the number.
          */
         // 处理单个 token，单个token，必须是一个数字或寄存器
-        uint32_t value = 0;
+        word_t value = 0;
         if (tokens[p].type == TK_DEC) {
             // 解析十进制整数
             sscanf(tokens[p].str, "%d", &value);
@@ -227,7 +228,7 @@ word_t eval(int p, int q, bool *success) {
         }
         else if (tokens[p].type == TK_REG) {
             // 获取寄存器的值
-            value = isa_reg_str2val(tokens[p].str + 1, success); // 寄存器
+            value = isa_reg_str2val(tokens[p].str + 1, success); // 获取寄存器值
             printf("Parsed register %s -> %u\n", tokens[p].str, value);//debug printf
             if (!*success) return 0;    // 获取失败，返回错误
         }
@@ -264,14 +265,20 @@ word_t eval(int p, int q, bool *success) {
             case '-': return val1 - val2;
             case '*': return val1 * val2;
             case '/':
-            if (val2 == 0) {
-                // 打印红色错误信息
-                printf("\033[31mError: Division by zero!\n");//debug printf
-                printf("Operator: %c, Left operand: %u, Right operand: %u\033[0m\n", tokens[op].type, val1, val2);//debug printf
-                *success = false;
-                return 0;   // 除零错误
-            }
-            return val1 / val2;
+                if (val2 == 0) {
+                    // 打印红色错误信息
+                    printf("\033[31mError: Division by zero!\n");//debug printf
+                    printf("Operator: %c, Left operand: %u, Right operand: %u\033[0m\n", tokens[op].type, val1, val2);//debug printf
+                    *success = false;
+                    return 0;   // 除零错误
+                }
+                return val1 / val2;
+                case TK_EQ: return val1 == val2;  // 等于
+            case TK_NEQ: return val1 != val2; // 不等于
+            case TK_AND: return val1 && val2; // 逻辑与
+            case TK_OR: return val1 || val2;  // 逻辑或
+            case DEREF:
+                return vaddr_read(val2, sizeof(word_t)); // 指针解引用
             default: assert(0);     // 不支持的运算符
         }
     }
@@ -279,15 +286,30 @@ word_t eval(int p, int q, bool *success) {
 
 
 word_t expr(char *e, bool *success) {
-  if (!make_token(e)) {
-    *success = false;
-    return 0;
-  }
+    if (!make_token(e)) {
+        *success = false;
+        return 0;
+    }
 
-  /* TODO: Insert codes to evaluate the expression. */
-  *success = true;
-  printf("nr_token=%d\n",nr_token);//debug printf
+    /* TODO: Insert codes to evaluate the expression. */
+    *success = true;
+    printf("nr_token=%d\n",nr_token);//debug printf
 
-  // 调用 eval 函数计算表达式的值
-  return eval(0, nr_token - 1, success);
+    // 区别乘法和指针解引用
+    for (int i = 0; i < nr_token; i++) {
+        if (tokens[i].type == '*') {
+            if (i == 0 || ( tokens[i - 1].type != TK_DEC &&
+                            tokens[i - 1].type != TK_HEX &&
+                            tokens[i - 1].type != TK_REG &&
+                            tokens[i - 1].type != ')')
+                )
+            {
+                tokens[i].type = DEREF;  // 标记为指针解引用
+            }
+        }
+    }
+
+
+    // 调用 eval 函数计算表达式的值
+    return eval(0, nr_token - 1, success);
 }
