@@ -25,6 +25,8 @@ static int is_batch_mode = false;
 
 void init_regex();
 void init_wp_pool();
+void print_watchpoints();
+void delete_watchpoint(int no);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
@@ -79,6 +81,9 @@ static int cmd_info(char *args) {
   } else if (strcmp(arg, "r") == 0) {
     // 调用 API 打印寄存器
     isa_reg_display();
+  } else if (strcmp(arg, "w") == 0) { // 添加对 info w 的支持
+    // 调用 API 打印监视点
+    print_watchpoints();
   } else {
     // 未识别的子命令
     printf("Invalid subcommand. Supported: r\n");
@@ -135,6 +140,29 @@ static int cmd_p(char *args) {
   return 0;
 }
 
+static int cmd_info_w(char *args) {
+  // 调用 print_watchpoints 打印监视点信息
+  print_watchpoints();
+  return 0;
+}
+
+static int cmd_delete_watchpoint(char *args) {
+  if (args == NULL) {
+    printf("Usage: d <no>\n"); // 提示用法
+    return 0;
+  }
+
+  int no = 0;
+  if (sscanf(args, "%d", &no) != 1) { // 解析监视点编号
+    printf("Invalid argument. Usage: d <no>\n");
+    return 0;
+  }
+
+  // 调用 delete_watchpoint 删除监视点
+  delete_watchpoint(no);
+  return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -147,8 +175,9 @@ static struct {
   { "si", "Single step program through N instructions", cmd_si },
   { "info", "Print program status", cmd_info },
   { "x", "Scan memory", cmd_x },
-  { "p", "Evaluate the expression EXPR", cmd_p }
-
+  { "p", "Evaluate the expression EXPR", cmd_p },
+  { "info w", "Print watchpoints information", cmd_info_w },
+  { "d", "Delete a watchpoint by its number", cmd_delete_watchpoint }
 };
 
 #define NR_CMD ARRLEN(cmd_table)
