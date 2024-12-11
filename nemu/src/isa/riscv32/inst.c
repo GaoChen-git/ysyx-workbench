@@ -73,7 +73,19 @@ static int decode_exec(Decode *s) {
     INSTPAT("??????? ????? ????? ??? ????? 00101 11", auipc, U, R(rd) = s->pc + (imm << 12));
     INSTPAT("??????? ????? ????? 000 ????? 00100 11", addi , I, R(rd) = src1 + imm);
 
-    INSTPAT("??????? ????? ????? ??? ????? ????? ??", li   , I, R(rd) = imm);               //在 RV32I 中，它等同于执行 lui 和/或 addi
+    // INSTPAT("??????? ????? ????? ??? ????? ????? ??", li   , I, R(rd) = imm);               //在 RV32I 中，它等同于执行 lui 和/或 addi
+    INSTPAT("??????? ????? ????? ??? ????? ????? ??", li, I, {
+                                                                // 检查立即数大小
+                                                                if (imm <= 0xFFF && imm >= -0x800) {
+                                                                    // 如果立即数可以用 12 位表示，直接使用 ADDI
+                                                                    R(rd) = imm;
+                                                                } else {
+                                                                    // 如果立即数超出 12 位，拆分为高 20 位和低 12 位
+                                                                    word_t imm_high = (imm + 0x800) >> 12;  // 向上取整到高 20 位
+                                                                    word_t imm_low = imm & 0xFFF;           // 取低 12 位
+                                                                    R(rd) = (imm_high << 12) + imm_low;
+                                                                }
+                                                                });
     INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal  , J,{R(rd) = s->snpc;            // 保存下一条指令地址
                                                                 s->dnpc = s->pc + imm;});   // 跳转到目标地址
 
