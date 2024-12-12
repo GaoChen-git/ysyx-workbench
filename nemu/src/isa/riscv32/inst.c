@@ -23,7 +23,7 @@
 #define Mw vaddr_write
 
 enum {
-  TYPE_I, TYPE_U, TYPE_S, TYPE_J,TYPE_R,
+  TYPE_I, TYPE_U, TYPE_S, TYPE_J,TYPE_R,TYPE_B,
   TYPE_N, // none
 };
 
@@ -40,6 +40,14 @@ enum {
               (BITS(i, 30, 21))) << 1,         /* offset[10:1] */ \
               21); /* 符号扩展到21位 */                      \
 } while (0)
+// B-type
+#define immB() do { \
+  *imm = SEXT((BITS(i, 31, 31) << 12) |  /* offset[12] */ \
+              (BITS(i, 30, 25) << 5)  |  /* offset[10:5] */ \
+              (BITS(i, 11, 8)  << 1)  |  /* offset[4:1] */ \
+              (BITS(i, 7, 7)   << 11),   /* offset[11] */ \
+              13); /* 符号扩展到13位 */ \
+} while (0)
 
 static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_t *imm, int type) {
   uint32_t i = s->isa.inst.val;
@@ -52,6 +60,7 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
     case TYPE_S: src1R(); src2R(); immS(); break;
     case TYPE_J:                   immJ(); break;
     case TYPE_R: src1R(); src2R();         break;
+    case TYPE_B: src1R(); src2R(); immB(); break;
   }
 }
 
@@ -94,6 +103,8 @@ static int decode_exec(Decode *s) { //s->snpc已经指向了+4后的下一条静
     INSTPAT("0000000 ????? ????? 101 ????? 01100 11", srl    , R, R(rd) = src1 >> (src2 & 0x1F));
     INSTPAT("0100000 ????? ????? 101 ????? 01100 11", sra    , R, R(rd) = (int32_t)src1 >> (src2 & 0x1F));
     INSTPAT("0000000 ????? ????? 011 ????? 01100 11", sltu   , R, R(rd) = src1 < src2 ? 1 : 0);
+    //  B-type
+    INSTPAT("??????? ????? ????? 000 ????? 11000 11", beq    , B, s->dnpc = (src1 == src2) ? (s->pc + imm) : s->snpc);
 
     // Pseudo instructions
     INSTPAT("??????? ????? 00000 000 ????? 00100 11", li     , I, R(rd) = imm);
@@ -103,7 +114,7 @@ static int decode_exec(Decode *s) { //s->snpc已经指向了+4后的下一条静
                                                                 s->dnpc = R(1);     // 计算跳转目标地址
                                                                 });                 // jalr x0, 0(x1)
     INSTPAT("0000000 ????? ????? 011 ????? 00100 11", seqz   , I, R(rd) = (src1 == 0) ? 1 : 0);
-
+    INSTPAT("??????? ????? ????? 000 ????? 11000 11", beqz   , B, s->dnpc = (src1 == 0) ? (s->pc + imm) : s->snpc);
 
     INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
     INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
