@@ -78,7 +78,7 @@ static int decode_exec(Decode *s) { //s->snpc已经指向了+4后的下一条静
                                                                 R(rd) = s->snpc;                // 保存下一条指令地址
                                                                 s->dnpc = (src1 + imm) & ~1;    // 计算跳转目标地址
                                                                 });
-    INSTPAT("??????? ????? ????? 000 ????? 01000 11", sb     , S, Mw(src1 + imm, 1, src2&0x0000000F));
+    INSTPAT("??????? ????? ????? 000 ????? 01000 11", sb     , S, Mw(src1 + imm, 1, src2&0x000000FF));
 
     // Pseudo instructions
     INSTPAT("??????? ????? 00000 000 ????? 00100 11", li   , I, R(rd) = imm);
