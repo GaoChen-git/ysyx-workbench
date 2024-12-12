@@ -34,10 +34,10 @@ enum {
 #define immS() do { *imm = (SEXT(BITS(i, 31, 25), 7) << 5) | BITS(i, 11, 7); } while(0)
 // J-type
 #define immJ() do {                                         \
-  *imm = SEXT((BITS(i, 31, 31) << 19) |  /* offset[20] */   \
+  *imm = SEXT(((BITS(i, 31, 31) << 19) |  /* offset[20] */   \
               (BITS(i, 19, 12) << 11) |  /* offset[19:12] */\
               (BITS(i, 20, 20) << 10) |  /* offset[11] */   \
-              (BITS(i, 30, 21)),         /* offset[10:1] */ \
+              (BITS(i, 30, 21))) << 1,         /* offset[10:1] */ \
               20); /* 符号扩展到20位 */                      \
 } while (0)
 
@@ -74,9 +74,9 @@ static int decode_exec(Decode *s) { //s->snpc已经指向了+4后的下一条静
     INSTPAT("??????? ????? ????? 000 ????? 00100 11", addi , I, R(rd) = src1 + imm);
 
     INSTPAT("??????? ????? 00000 000 ????? 00100 11", li   , I, R(rd) = imm);
-    INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal  , J,{R(rd) = s->snpc; s->dnpc = s->dnpc + imm;}); // 把下一条指令的地址(pc+4)，然后把 pc 设置为当前值加上符号位扩展的offset[20|10:1|11|19:12]
+    INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal  , J,{R(rd) = s->snpc; s->dnpc = s->pc + imm;}); // 把下一条指令的地址(pc+4)，然后把 pc 设置为当前值加上符号位扩展的offset[20|10:1|11|19:12]
 
-    INSTPAT("??????? ????? ????? ??? 00000 11011 11", j    , J,{R(0) = s->snpc; s->dnpc = s->dnpc + imm;}); // jal x0,offset
+    INSTPAT("??????? ????? ????? ??? 00000 11011 11", j    , J,{R(0) = s->snpc; s->dnpc = s->pc + imm;}); // jal x0,offset
     INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr, I, {
                                                                 R(rd) = s->snpc;    // 保存下一条指令地址
                                                                 s->dnpc = (src1 + imm) & ~1;    // 计算跳转目标地址
