@@ -23,7 +23,7 @@
 #define Mw vaddr_write
 
 enum {
-  TYPE_I, TYPE_U, TYPE_S, TYPE_J,
+  TYPE_I, TYPE_U, TYPE_S, TYPE_J,TYPE_R,
   TYPE_N, // none
 };
 
@@ -51,6 +51,7 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
     case TYPE_U:                   immU(); break;
     case TYPE_S: src1R(); src2R(); immS(); break;
     case TYPE_J:                   immJ(); break;
+    case TYPE_R: src1R(); src2R();         break;
   }
 }
 
@@ -73,9 +74,9 @@ static int decode_exec(Decode *s) { //s->snpc已经指向了+4后的下一条静
     // Standard instructions
     INSTPAT("??????? ????? ????? ??? ????? 00101 11", auipc, U, R(rd) = s->pc + imm);
     INSTPAT("??????? ????? ????? 000 ????? 00100 11", addi , I, R(rd) = src1 + imm);
+    INSTPAT("??????? ????? ????? 000 ????? 00100 11", add  , R, R(rd) = src1 + src2;);
     INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal  , J,{R(rd) = s->snpc; s->dnpc = s->pc + imm;}); // 把下一条指令的地址(pc+4)，然后把 pc 设置为当前值加上符号位扩展的offset[20|10:1|11|19:12]
-    INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr , I,{
-                                                                R(rd) = s->snpc;                // 保存下一条指令地址
+    INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr , I,{R(rd) = s->snpc;                // 保存下一条指令地址
                                                                 s->dnpc = (src1 + imm) & ~1;    // 计算跳转目标地址
                                                                 });
     INSTPAT("??????? ????? ????? 000 ????? 01000 11", sb     , S, Mw(src1 + imm, 1, (src2 & 0xFF)));
@@ -84,8 +85,7 @@ static int decode_exec(Decode *s) { //s->snpc已经指向了+4后的下一条静
     INSTPAT("??????? ????? 00000 000 ????? 00100 11", li   , I, R(rd) = imm);
     INSTPAT("0000000 00000 ????? 000 ????? 00100 11", mv   , I, R(rd) = src1); // addi rd, rs1, 0
     INSTPAT("??????? ????? ????? ??? 00000 11011 11", j    , J,{R(0) = s->snpc; s->dnpc = s->pc + imm;}); // jal x0,offset
-    INSTPAT("0000000 00000 00001 000 ????? 11001 11", ret  , I, {
-                                                                R(0) = s->snpc;     // 保存下一条指令地址
+    INSTPAT("0000000 00000 00001 000 ????? 11001 11", ret  , I,{R(0) = s->snpc;     // 保存下一条指令地址
                                                                 s->dnpc = R(1);     // 计算跳转目标地址
                                                                 });                 // jalr x0, 0(x1)
 
