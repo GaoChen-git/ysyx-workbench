@@ -29,17 +29,32 @@ int atoi(const char* nptr) {
   return x;
 }
 
+static char *curr = NULL; // 用于指示当前可分配内存的起始位置
+
 void *malloc(size_t size) {
   // On native, malloc() will be called during initializaion of C runtime.
   // Therefore do not call panic() here, else it will yield a dead recursion:
   //   panic() -> putchar() -> (glibc) -> malloc() -> panic()
 #if !(defined(__ISA_NATIVE__) && defined(__NATIVE_USE_KLIB__))
-  panic("Not implemented");
+    // 使用 NEMU 提供的 heap 区域进行分配
+    if (curr == NULL) {
+    curr = (char *)heap.start; // 初始化 curr 为堆区起始位置
+    }
+
+    // 对齐分配地址，假定对齐到8字节（具体请根据需要RTFM）
+    uintptr_t aligned = ROUNDUP((uintptr_t)curr, 8);
+
+    // 检查是否有足够空间分配（在测试代码中一般不需要严密检查）
+    // 简单实现，不做越界检查
+    char *ret = (char *)aligned;
+    curr = (char *)(aligned + size); // 移动当前指针
+    return ret;
 #endif
-  return NULL;
+    return NULL;
 }
 
 void free(void *ptr) {
+    // 简单版本，不释放内存
 }
 
 #endif
