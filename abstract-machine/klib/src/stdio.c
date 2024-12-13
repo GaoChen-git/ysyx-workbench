@@ -5,96 +5,110 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-// Helper function to output formatted text
-static int vsnprintf_helper(char *out, size_t n, const char *fmt, va_list ap) {
-  size_t written = 0;
-  const char *p = fmt;
-  char buffer[32];
-
-  while (*p) {
-    if (*p == '%') {
-      p++;
-      switch (*p) {
-        case 'd': {
-          int val = va_arg(ap, int);
-          int len = snprintf(buffer, sizeof(buffer), "%d", val);
-          for (int i = 0; i < len && written < n - 1; i++) {
-            out[written++] = buffer[i];
-          }
-          break;
-        }
-        case 's': {
-          const char *str = va_arg(ap, const char *);
-          while (*str && written < n - 1) {
-            out[written++] = *str++;
-          }
-          break;
-        }
-        case 'c': {
-          char ch = (char)va_arg(ap, int);
-          if (written < n - 1) {
-            out[written++] = ch;
-          }
-          break;
-        }
-        case '%': {
-          if (written < n - 1) {
-            out[written++] = '%';
-          }
-          break;
-        }
-        default: {
-          // Unsupported format specifier
-          break;
-        }
-      }
+static int print_char(char **out, size_t *remaining, char ch) {
+  if (*out) {
+    if (*remaining > 1) {
+      **out = ch;
+      (*out)++;
+      (*remaining)--;
     } else {
-      if (written < n - 1) {
-        out[written++] = *p;
-      }
+      return -1; // Buffer overflow
     }
-    p++;
+  } else {
+    putch(ch);
   }
-  if (n > 0) {
-    out[written] = '\0';
+  return 1;
+}
+
+static int print_string(char **out, size_t *remaining, const char *str) {
+  int count = 0;
+  while (*str) {
+    if (print_char(out, remaining, *str++) == -1) return -1;
+    count++;
   }
-  return written;
+  return count;
+}
+
+static int print_integer(char **out, size_t *remaining, int num) {
+  char buffer[12]; // Enough to hold -2^31 to 2^31-1
+  int i = 0;
+  if (num < 0) {
+    if (print_char(out, remaining, '-') == -1) return -1;
+    num = -num;
+  }
+  do {
+    buffer[i++] = '0' + (num % 10);
+    num /= 10;
+  } while (num > 0);
+  for (i--; i >= 0; i--) {
+    if (print_char(out, remaining, buffer[i]) == -1) return -1;
+  }
+  return 0;
+}
+
+static int vformat(char *out, size_t n, const char *fmt, va_list ap) {
+  char *output = out;
+  size_t remaining = n;
+  int count = 0;
+
+  while (*fmt) {
+    if (*fmt == '%') {
+      fmt++;
+      if (*fmt == 'd') {
+        int val = va_arg(ap, int);
+        if (print_integer(&output, &remaining, val) == -1) return -1;
+      } else if (*fmt == 's') {
+        const char *val = va_arg(ap, const char *);
+        if (print_string(&output, &remaining, val) == -1) return -1;
+      } else if (*fmt == 'c') {
+        char val = (char)va_arg(ap, int);
+        if (print_char(&output, &remaining, val) == -1) return -1;
+      } else {
+        return -1; // Unsupported format specifier
+      }
+      fmt++;
+    } else {
+      if (print_char(&output, &remaining, *fmt++) == -1) return -1;
+    }
+  }
+
+  if (output && n > 0) {
+    *output = '\0';
+  }
+
+  return count;
 }
 
 int printf(const char *fmt, ...) {
-  char buffer[256];
   va_list ap;
   va_start(ap, fmt);
-  int written = vsnprintf_helper(buffer, sizeof(buffer), fmt, ap);
+  int result = vformat(NULL, 0, fmt, ap);
   va_end(ap);
-  for (int i = 0; i < written; i++) {
-    putch(buffer[i]);
-  }
-  return written;
+  return result;
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
-  return vsnprintf_helper(out, (size_t)-1, fmt, ap);
+  return vformat(out, SIZE_MAX, fmt, ap);
 }
 
 int sprintf(char *out, const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  int written = vsnprintf_helper(out, (size_t)-1, fmt, ap);
+  int result = vformat(out, SIZE_MAX, fmt, ap);
   va_end(ap);
-  return written;
+  return result;
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  int written = vsnprintf_helper(out, n, fmt, ap);
+  int result = vformat(out, n, fmt, ap);
   va_end(ap);
-  return written;
+  return result;
 }
 
 int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
-  return vsnprintf_helper(out, n, fmt, ap);
+  return vformat(out, n, fmt, ap);
 }
 
 #endif
