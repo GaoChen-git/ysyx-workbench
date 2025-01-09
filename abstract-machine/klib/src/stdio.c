@@ -29,21 +29,32 @@ static int print_string(char **out, size_t *remaining, const char *str) {
   return count;
 }
 
-static int print_integer(char **out, size_t *remaining, int num) {
-  char buffer[12]; // Enough to hold -2^31 to 2^31-1
-  int i = 0;
-  if (num < 0) {
-    if (print_char(out, remaining, '-') == -1) return -1;
-    num = -num;
-  }
-  do {
-    buffer[i++] = '0' + (num % 10);
-    num /= 10;
-  } while (num > 0);
-  for (i--; i >= 0; i--) {
-    if (print_char(out, remaining, buffer[i]) == -1) return -1;
-  }
-  return 0;
+static int print_integer(char **out, size_t *remaining, int num, int width, char pad) {
+    char buffer[12]; // Enough to hold -2^31 to 2^31-1
+    int i = 0, len = 0;
+
+    if (num < 0) {
+        if (print_char(out, remaining, '-') == -1) return -1;
+        num = -num;
+        width--; // Account for the '-' sign
+    }
+
+    do {
+        buffer[i++] = '0' + (num % 10);
+        num /= 10;
+    } while (num > 0);
+
+    len = i;
+    while (len < width) { // Pad with the specified character
+        if (print_char(out, remaining, pad) == -1) return -1;
+        len++;
+    }
+
+    for (i--; i >= 0; i--) {
+        if (print_char(out, remaining, buffer[i]) == -1) return -1;
+    }
+
+    return 0;
 }
 
 static int vformat(char *out, size_t n, const char *fmt, va_list ap) {
@@ -54,9 +65,22 @@ static int vformat(char *out, size_t n, const char *fmt, va_list ap) {
   while (*fmt) {
     if (*fmt == '%') {
       fmt++;
+      char pad = ' ';  // Default padding
+      int width = 0;
+
+      if (*fmt == '0') { // Zero padding
+        pad = '0';
+        fmt++;
+      }
+
+      while (*fmt >= '0' && *fmt <= '9') { // Parse width
+        width = width * 10 + (*fmt - '0');
+        fmt++;
+      }
+
       if (*fmt == 'd') {
         int val = va_arg(ap, int);
-        if (print_integer(&output, &remaining, val) == -1) return -1;
+        if (print_integer(&output, &remaining, val, width, pad) == -1) return -1;
       } else if (*fmt == 's') {
         const char *val = va_arg(ap, const char *);
         if (print_string(&output, &remaining, val) == -1) return -1;
