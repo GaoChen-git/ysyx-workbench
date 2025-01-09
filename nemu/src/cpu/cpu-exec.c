@@ -151,7 +151,9 @@ static void statistic() {
 
 void assert_fail_msg() {
   isa_reg_display();
+#ifdef CONFIG_ITRACE
   print_iringbuf(); // 在这里调用打印iringbuf
+#endif
   statistic();
 }
 
