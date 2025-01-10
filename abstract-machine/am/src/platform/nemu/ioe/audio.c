@@ -15,8 +15,8 @@ void __am_audio_init() {
 
 // 配置声卡信息
 void __am_audio_config(AM_AUDIO_CONFIG_T *cfg) {
-    // cfg->present = false;                      // 声卡不存在
-    cfg->present = true;                      // 声卡存在
+    cfg->present = false;                      // 声卡不存在
+    // cfg->present = true;                      // 声卡存在
     cfg->bufsize = inl(AUDIO_SBUF_SIZE_ADDR); // 从寄存器读取缓冲区大小
 }
 
