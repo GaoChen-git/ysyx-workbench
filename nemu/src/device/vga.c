@@ -74,7 +74,7 @@ void vga_update_screen() {
   // TODO: call `update_screen()` when the sync register is non-zero,
   // then zero out the sync register
   if (vgactl_port_base[1] != 0) { // 检查同步寄存器
-    update_screen();              // 调用屏幕更新函数
+    IFDEF(CONFIG_VGA_SHOW_SCREEN, update_screen()); // 调用屏幕更新函数
     vgactl_port_base[1] = 0;      // 清除同步信号
   }
 }
