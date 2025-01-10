@@ -40,14 +40,21 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
 }
 
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
-//   // 将像素数据写入帧缓冲区
-//   uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
-//   for (int y = 0; y < ctl->h; y++) {
-//     for (int x = 0; x < ctl->w; x++) {
-//       int pos = (ctl->y + y) * ctl->w + (ctl->x + x);
-//       fb[pos] = ((uint32_t *)ctl->pixels)[y * ctl->w + x];
-//     }
-//   }
+uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
+  int screen_w = inl(VGACTL_ADDR) >> 16;
+  int screen_h = inl(VGACTL_ADDR) & 0xFFFF;
+
+  for (int y = 0; y < ctl->h; y++) {
+    for (int x = 0; x < ctl->w; x++) {
+      int screen_pos = (ctl->y + y) * screen_w + (ctl->x + x);
+      int buf_pos = y * ctl->w + x;
+
+      // 检查坐标是否在屏幕范围内
+      if ((ctl->x + x) < screen_w && (ctl->y + y) < screen_h) {
+        fb[screen_pos] = ((uint32_t *)ctl->pixels)[buf_pos];
+      }
+    }
+  }
 
   if (ctl->sync) {
     outl(SYNC_ADDR, 1);
