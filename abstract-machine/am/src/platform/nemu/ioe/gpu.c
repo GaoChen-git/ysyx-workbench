@@ -6,7 +6,7 @@
 void __am_gpu_init() {
     // 从 VGACTL_ADDR 获取屏幕宽高信息
     uint32_t screen_info = inl(VGACTL_ADDR);
-    int w = screen_info >> 16;    // 高16位存储宽度
+    int w = (screen_info >> 16) & 0xFFFF;    // 高16位存储宽度
     int h = screen_info & 0xFFFF; // 低16位存储高度
 
     // 初始化帧缓冲区
