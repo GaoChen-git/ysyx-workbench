@@ -40,25 +40,25 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
 }
 
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
-    // uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
-    // int screen_w = inl(VGACTL_ADDR) >> 16;
-    // int screen_h = inl(VGACTL_ADDR) & 0xFFFF;
+    uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
+    int screen_w = inl(VGACTL_ADDR) >> 16;
+    int screen_h = inl(VGACTL_ADDR) & 0xFFFF;
 
-    // for (int y = 0; y < ctl->h; y++) {
-    //     for (int x = 0; x < ctl->w; x++) {
-    //         int screen_pos = (ctl->y + y) * screen_w + (ctl->x + x);
-    //         int buf_pos = y * ctl->w + x;
+    for (int y = 0; y < ctl->h; y++) {
+        for (int x = 0; x < ctl->w; x++) {
+            int screen_pos = (ctl->y + y) * screen_w + (ctl->x + x);
+            int buf_pos = y * ctl->w + x;
 
-    //         // 检查坐标是否在屏幕范围内
-    //         if ((ctl->x + x) < screen_w && (ctl->y + y) < screen_h) {
-    //             fb[screen_pos] = ((uint32_t *)ctl->pixels)[buf_pos];
-    //         }
-    //     }
-    // }
+            // 检查坐标是否在屏幕范围内
+            if ((ctl->x + x) < screen_w && (ctl->y + y) < screen_h) {
+                fb[screen_pos] = ((uint32_t *)ctl->pixels)[buf_pos];
+            }
+        }
+    }
 
-  if (ctl->sync) {
-    outl(SYNC_ADDR, 1);
-  }
+    if (ctl->sync) {
+        outl(SYNC_ADDR, 1);
+    }
 }
 
 void __am_gpu_status(AM_GPU_STATUS_T *status) {
