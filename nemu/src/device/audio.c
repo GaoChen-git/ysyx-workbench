@@ -29,50 +29,41 @@ enum {
 
 static uint8_t *sbuf = NULL;// 流缓冲区
 static uint32_t *audio_base = NULL;// 寄存器基地址
-static int sbuf_read_pos = 0;     // 缓冲区读取位置
-static int sbuf_size = 0;         // 缓冲区大小
+static int tail = 0;
 
-static SDL_AudioSpec spec;
+static inline void audio_play(void *userdata, uint8_t *stream, int len) {
+  int nread = len;
+  int count = audio_base[reg_count];
+  if (count < len) nread = count;
 
-static void sdl_audio_callback(void *userdata, uint8_t *stream, int len) {
-  // 从缓冲区读取音频数据
-  int available = sbuf_size - sbuf_read_pos;
-  if (available < len) {
-    memcpy(stream, sbuf + sbuf_read_pos, available);
-    memset(stream + available, 0, len - available); // 填零防止噪音
-    sbuf_read_pos = 0;
+  if (nread + tail < CONFIG_SB_SIZE) {
+    memcpy(stream, sbuf + tail, nread);
+    tail += nread;
   } else {
-    memcpy(stream, sbuf + sbuf_read_pos, len);
-    sbuf_read_pos += len;
+    int first_cpy_len = CONFIG_SB_SIZE - tail;
+    memcpy(stream, sbuf + tail, first_cpy_len);
+    memcpy(stream + first_cpy_len, sbuf, nread - first_cpy_len);
+    tail = nread - first_cpy_len;
   }
-  audio_base[reg_count] = sbuf_size - sbuf_read_pos; // 更新缓冲区使用情况
+  audio_base[reg_count] -= nread;
+  if (len > nread) memset(stream + nread, 0, len - nread);
 }
 
 static void audio_io_handler(uint32_t offset, int len, bool is_write) {
-    if (!is_write) return;
+    if (offset == reg_init * sizeof(uint32_t) && len == 4 && is_write) {
+    SDL_AudioSpec s = {};
+    s.freq = audio_base[reg_freq];
+    s.format = AUDIO_S16SYS;
+    s.channels = audio_base[reg_channels];
+    s.samples = audio_base[reg_samples];
+    s.callback = audio_play;
+    s.userdata = NULL;
 
-  switch (offset) {
-    case reg_freq:
-      spec.freq = audio_base[reg_freq];
-      break;
-    case reg_channels:
-      spec.channels = audio_base[reg_channels];
-      break;
-    case reg_samples:
-      spec.samples = audio_base[reg_samples];
-      break;
-    case reg_init:
-      if (audio_base[reg_init]) {
-        SDL_InitSubSystem(SDL_INIT_AUDIO);
-        spec.format = AUDIO_S16SYS;
-        spec.callback = sdl_audio_callback;
-        spec.userdata = NULL;
-        SDL_OpenAudio(&spec, NULL);
-        SDL_PauseAudio(0);
-      }
-      break;
-    default:
-      break;
+    tail = 0;
+    audio_base[reg_count] = 0;
+    SDL_InitSubSystem(SDL_INIT_AUDIO);
+    SDL_OpenAudio(&s, NULL);
+    SDL_PauseAudio(0);
   }
 }
 
@@ -85,9 +76,9 @@ void init_audio() {
     add_mmio_map("audio", CONFIG_AUDIO_CTL_MMIO, audio_base, space_size, audio_io_handler);
 #endif
 
-    sbuf_size = CONFIG_SB_SIZE;
+    audio_base[reg_sbuf_size] = CONFIG_SB_SIZE;
+
     sbuf = (uint8_t *)new_space(CONFIG_SB_SIZE);
     add_mmio_map("audio-sbuf", CONFIG_SB_ADDR, sbuf, CONFIG_SB_SIZE, NULL);
 
-    memset(audio_base, 0, space_size);
 }

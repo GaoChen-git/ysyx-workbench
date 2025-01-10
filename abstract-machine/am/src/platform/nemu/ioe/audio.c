@@ -35,22 +35,22 @@ void __am_audio_status(AM_AUDIO_STATUS_T *stat) {
 // 播放音频数据
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
     uint8_t *buf = (uint8_t *)ctl->buf.start;   // 获取音频数据起始地址
-  int len = ctl->buf.end - ctl->buf.start;    // 计算音频数据长度
+    int len = ctl->buf.end - ctl->buf.start;    // 计算音频数据长度
 
-  while (len > 0) {
-    int available_space = inl(AUDIO_SBUF_SIZE_ADDR) - inl(AUDIO_COUNT_ADDR);  // 计算剩余空间
-    if (available_space == 0) {
-      continue;  // 等待缓冲区空闲
+    while (len > 0) {
+        int available_space = inl(AUDIO_SBUF_SIZE_ADDR) - inl(AUDIO_COUNT_ADDR);  // 计算剩余空间
+        if (available_space == 0) {
+            continue;  // 等待缓冲区空闲
+        }
+
+        int write_len = (len < available_space) ? len : available_space;  // 决定写入长度
+
+        // 将音频数据写入缓冲区
+        for (int i = 0; i < write_len; i++) {
+            outb(AUDIO_SBUF_ADDR + (inl(AUDIO_COUNT_ADDR) % inl(AUDIO_SBUF_SIZE_ADDR)), buf[i]);
+        }
+
+        len -= write_len;  // 更新剩余长度
+        buf += write_len;  // 更新数据指针
     }
-
-    int write_len = (len < available_space) ? len : available_space;  // 决定写入长度
-
-    // 将音频数据写入缓冲区
-    for (int i = 0; i < write_len; i++) {
-      outb(AUDIO_SBUF_ADDR + (inl(AUDIO_COUNT_ADDR) % inl(AUDIO_SBUF_SIZE_ADDR)), buf[i]);
-    }
-
-    len -= write_len;  // 更新剩余长度
-    buf += write_len;  // 更新数据指针
-  }
 }
