@@ -44,6 +44,58 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
 }
 
+// ***********************************************************
+// *** iringbuf code begin ***
+#ifdef CONFIG_ITRACE
+#define IRINGBUF_SIZE 16  // 可以根据需要调整大小
+
+typedef struct {
+  vaddr_t pc;           // 指令的PC地址
+  char instr[128];      // 指令的反汇编字符串
+  uint8_t bytes[8];     // 指令的机器码原始字节（长度可根据ISA决定，一般4-8字节）
+  int ilen;             // 指令长度（字节数）
+} IringbufEntry;
+
+static IringbufEntry iringbuf[IRINGBUF_SIZE];
+static int iringbuf_pos = 0;    // 当前写入位置
+static bool iringbuf_full = false; // 是否已经写满过一次
+
+static void save_instruction_to_iringbuf(Decode *s) {
+  iringbuf[iringbuf_pos].pc = s->pc;
+
+  snprintf(iringbuf[iringbuf_pos].instr, sizeof(iringbuf[iringbuf_pos].instr), "%s", s->logbuf);
+
+  int ilen = s->snpc - s->pc; // 指令长度
+  iringbuf[iringbuf_pos].ilen = ilen;
+  memcpy(iringbuf[iringbuf_pos].bytes, &s->isa.inst.val, ilen);
+
+  iringbuf_pos = (iringbuf_pos + 1) % IRINGBUF_SIZE;
+  if (iringbuf_pos == 0) {
+    iringbuf_full = true;
+  }
+}
+
+static void print_iringbuf() {
+  printf("Recent executed instructions:\n");
+  int start = iringbuf_full ? iringbuf_pos : 0;
+  int count = iringbuf_full ? IRINGBUF_SIZE : iringbuf_pos;
+
+  // 最后一条记录的指令一般是出错前执行的那条，可以用`-->`标记
+  for (int i = 0; i < count; i++) {
+    int idx = (start + i) % IRINGBUF_SIZE;
+    const char *marker = (i == count - 1) ? "-->" : "   ";
+    printf("%s 0x%08" PRIxPTR ": %s\n", marker, (uintptr_t)iringbuf[idx].pc, iringbuf[idx].instr);
+    // 如有需要，可以在这里打印机器码
+    // for(int j = 0; j < iringbuf[idx].ilen; j++) {
+    //   printf("%02x ", iringbuf[idx].bytes[j]);
+    // }
+    // printf("\n");
+  }
+}
+#endif
+// *** iringbuf code end   ***
+// ***********************************************************
+
 static void exec_once(Decode *s, vaddr_t pc) {
   s->pc = pc;
   s->snpc = pc;
@@ -72,6 +124,8 @@ static void exec_once(Decode *s, vaddr_t pc) {
 #else
   p[0] = '\0'; // the upstream llvm does not support loongarch32r
 #endif
+    // iringbuf存储指令
+    save_instruction_to_iringbuf(s);
 #endif
 }
 
@@ -97,6 +151,9 @@ static void statistic() {
 
 void assert_fail_msg() {
   isa_reg_display();
+#ifdef CONFIG_ITRACE
+  print_iringbuf(); // 在这里调用打印iringbuf
+#endif
   statistic();
 }
 
