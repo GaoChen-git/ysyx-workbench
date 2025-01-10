@@ -20,11 +20,6 @@ void __am_gpu_init() {
 }
 
 void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
-//   *cfg = (AM_GPU_CONFIG_T) {
-//     .present = true, .has_accel = false,
-//     .width = 0, .height = 0,
-//     .vmemsz = 0
-//   };
     // 从 VGACTL_ADDR 读取屏幕信息
     uint32_t screen_info = inl(VGACTL_ADDR);
     int w = (screen_info >> 16) & 0xFFFF;
