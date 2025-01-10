@@ -15,8 +15,8 @@ void __am_audio_init() {
 
 // 配置声卡信息
 void __am_audio_config(AM_AUDIO_CONFIG_T *cfg) {
-  cfg->present = true;// 声卡存在
-  cfg->bufsize = inl(AUDIO_SBUF_SIZE_ADDR);// 从寄存器读取缓冲区大小
+  cfg->present = true;                      // 声卡存在
+  cfg->bufsize = inl(AUDIO_SBUF_SIZE_ADDR); // 从寄存器读取缓冲区大小
 }
 
 // 配置声卡控制参数
@@ -29,28 +29,31 @@ void __am_audio_ctrl(AM_AUDIO_CTRL_T *ctrl) {
 
 // 读取声卡状态
 void __am_audio_status(AM_AUDIO_STATUS_T *stat) {
-  stat->count = inl(AUDIO_COUNT_ADDR);  // 从寄存器读取当前缓冲区已用大小
+  stat->count = inl(AUDIO_COUNT_ADDR);          // 从寄存器读取当前缓冲区已用大小
 }
 
 // 播放音频数据
 void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
-    uint8_t *buf = (uint8_t *)ctl->buf.start;   // 获取音频数据起始地址
+    uint8_t *buf = (uint8_t *)ctl->buf.start;   // 获取待播放音频数据的起始地址
     int len = ctl->buf.end - ctl->buf.start;    // 计算音频数据长度
 
     while (len > 0) {
-        int available_space = inl(AUDIO_SBUF_SIZE_ADDR) - inl(AUDIO_COUNT_ADDR);  // 计算剩余空间
+        // 计算缓冲区剩余空间
+        int available_space = inl(AUDIO_SBUF_SIZE_ADDR) - inl(AUDIO_COUNT_ADDR);
         if (available_space == 0) {
-            continue;  // 等待缓冲区空闲
+            continue;  // 如果缓冲区满，则等待
         }
 
-        int write_len = (len < available_space) ? len : available_space;  // 决定写入长度
+        // 计算本次写入的长度
+        int write_len = (len < available_space) ? len : available_space;
 
-        // 将音频数据写入缓冲区
+        // 写入音频数据到缓冲区
         for (int i = 0; i < write_len; i++) {
-            outb(AUDIO_SBUF_ADDR + (inl(AUDIO_COUNT_ADDR) % inl(AUDIO_SBUF_SIZE_ADDR)), buf[i]);
+            outb(AUDIO_SBUF_ADDR + ((inl(AUDIO_COUNT_ADDR) + i) % inl(AUDIO_SBUF_SIZE_ADDR)), buf[i]);
         }
 
-        len -= write_len;  // 更新剩余长度
-        buf += write_len;  // 更新数据指针
+        // 更新剩余音频数据长度和指针位置
+        len -= write_len;
+        buf += write_len;
     }
 }
