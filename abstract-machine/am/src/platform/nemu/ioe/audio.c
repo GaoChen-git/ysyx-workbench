@@ -38,23 +38,33 @@ void __am_audio_play(AM_AUDIO_PLAY_T *ctl) {
     uint8_t *buf = (uint8_t *)ctl->buf.start;   // 获取待播放音频数据的起始地址
     int len = ctl->buf.end - ctl->buf.start;    // 计算音频数据长度
 
+    // 读出环形缓冲区总大小
+    uint32_t sbuf_size = inl(AUDIO_SBUF_SIZE_ADDR);
+
     while (len > 0) {
-        // 计算缓冲区剩余空间
-        int available_space = inl(AUDIO_SBUF_SIZE_ADDR) - inl(AUDIO_COUNT_ADDR);
-        if (available_space == 0) {
-            continue;  // 如果缓冲区满，则等待
+        // 当前环形缓冲区已用大小
+        uint32_t cur_count = inl(AUDIO_COUNT_ADDR);
+        uint32_t free_space = sbuf_size - cur_count; // 剩余可用空间
+
+        if (free_space == 0) {
+            // 如果缓冲区已满，简单忙等 (可考虑用yield或sleep)
+            continue;
         }
 
-        // 计算本次写入的长度
-        int write_len = (len < available_space) ? len : available_space;
+        // 本次实际可写入的字节数
+        int write_len = (len < free_space ? len : free_space);
 
-        // 写入音频数据到缓冲区
+        // 按环形逻辑写入
         for (int i = 0; i < write_len; i++) {
-            outb(AUDIO_SBUF_ADDR + ((inl(AUDIO_COUNT_ADDR) + i) % inl(AUDIO_SBUF_SIZE_ADDR)), buf[i]);
+            // 写位置：(cur_count + i) % sbuf_size
+            outb(AUDIO_SBUF_ADDR + ((cur_count + i) % sbuf_size), buf[i]);
         }
 
-        // 更新剩余音频数据长度和指针位置
-        len -= write_len;
+        // **关键：写完后需要更新硬件 count 寄存器，告诉硬件我们又写了多少字节**
+        outl(AUDIO_COUNT_ADDR, cur_count + write_len);
+
+        // 更新本次写入后，剩余的未写音频数据
         buf += write_len;
+        len -= write_len;
     }
 }
