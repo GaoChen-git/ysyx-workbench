@@ -12,7 +12,7 @@ void __am_gpu_init() {
     // 初始化帧缓冲区
     uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
     for (int i = 0; i < w * h; i++) {
-        fb[i] = (0x000000+i)<0xFFFFFF?i:0xFF0000; // 填充测试颜色数据
+        fb[i] = 0xFF0000; // 填充测试颜色数据
     }
 
     // 同步帧缓冲区到屏幕
