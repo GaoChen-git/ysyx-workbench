@@ -27,7 +27,7 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
 //   };
     // 从 VGACTL_ADDR 读取屏幕信息
     uint32_t screen_info = inl(VGACTL_ADDR);
-    int w = screen_info >> 16;
+    int w = (screen_info >> 16) & 0xFFFF;
     int h = screen_info & 0xFFFF;
 
     *cfg = (AM_GPU_CONFIG_T) {
