@@ -40,14 +40,14 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
 }
 
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
-  // 将像素数据写入帧缓冲区
-  uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
-  for (int y = 0; y < ctl->h; y++) {
-    for (int x = 0; x < ctl->w; x++) {
-      int pos = (ctl->y + y) * ctl->w + (ctl->x + x);
-      fb[pos] = ((uint32_t *)ctl->pixels)[y * ctl->w + x];
-    }
-  }
+//   // 将像素数据写入帧缓冲区
+//   uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
+//   for (int y = 0; y < ctl->h; y++) {
+//     for (int x = 0; x < ctl->w; x++) {
+//       int pos = (ctl->y + y) * ctl->w + (ctl->x + x);
+//       fb[pos] = ((uint32_t *)ctl->pixels)[y * ctl->w + x];
+//     }
+//   }
 
   if (ctl->sync) {
     outl(SYNC_ADDR, 1);
