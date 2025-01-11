@@ -9,7 +9,7 @@ uint32_t pmem[256];
 
 // 模拟存储器的读取函数
 uint32_t pmem_read(uint32_t addr) {
-    if (addr < 0x80000000 || addr >= 0x80000000 + sizeof(pmem)) {
+    if (addr < 0x80000000 || addr >= 0x80000000 + 4 * (sizeof(pmem) / sizeof(uint32_t))) {
         std::cerr << "Error: Memory access out of bounds at address: 0x"
                   << std::hex << addr << std::endl;
         exit(EXIT_FAILURE);
@@ -58,6 +58,9 @@ int main(int argc, char **argv) {
                     top->rst = 0;  // 取消复位
                 }
                 // 每个周期从内存读取指令
+                std::cout << "Time: " << time
+                          << ", PC: 0x" << std::hex << top->pc
+                          << ", Instruction: 0x" << pmem_read(top->pc) << std::endl;
                 top->mem_inst = pmem_read(top->pc);
             }
         }
@@ -70,7 +73,8 @@ int main(int argc, char **argv) {
 
     // 检查是否达到最大时间限制
     if (time >= MAX_TIME) {
-        std::cerr << "Simulation ended due to reaching maximum time steps." << std::endl;
+        std::cerr << "Simulation ended due to reaching maximum time steps."
+                  << " PC: 0x" << std::hex << top->pc << std::endl;
     }
 
     // 清理资源
