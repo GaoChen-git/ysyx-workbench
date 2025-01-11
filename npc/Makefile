@@ -17,12 +17,13 @@ all:
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@echo "Building Verilator simulation with files from $(VFILE_PATH)..."
-	verilator -Wall --cc --exe --build $(CSRC) $(VFILES) -I$(VFILE_PATH) --trace\
+	verilator -Wall --cc --exe --build $(CSRC) $(VFILES) -I$(VFILE_PATH) --trace \
+          --top-module $(TOP_MODULE) \
           --Wno-PINCONNECTEMPTY --Wno-WIDTHEXPAND --Wno-UNUSEDSIGNAL
 	@echo "Compiling simulation..."
-	make -C obj_dir -f $(TOP_MODULE).mk $(TOP_MODULE)
+	make -C obj_dir -f V$(TOP_MODULE).mk V$(TOP_MODULE)
 	@echo "Running simulation..."
-	./obj_dir/$(TOP_MODULE)
+	./obj_dir/V$(TOP_MODULE)
 
 # 清理生成的文件
 clean:
