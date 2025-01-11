@@ -62,12 +62,11 @@ int main(int argc, char **argv) {
                             << ", PC: 0x" << std::hex << top->pc
                             << ", Instruction: 0x" << pmem_read(top->pc) << std::endl;
                     top->mem_inst = pmem_read(top->pc);
+                    top->eval();  // 评估模型
+                    tfp->dump(time);  // 写入波形
                 }
             }
         }
-
-        top->eval();  // 评估模型
-        tfp->dump(time);  // 写入波形
 
         time++;  // 仿真时间步进
     }
