@@ -7,7 +7,8 @@ module ysyx_22050535_PC (
 );
   always @(posedge clk) begin
     if (rst)
-      pc <= `ysyx_22050535_RESET_VAL;
+    //   pc <= `ysyx_22050535_RESET_VAL;
+      pc <= 0x80000000;
     else
       pc <= pc + 4; // 每次递增4字节
   end
