@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     // 初始化程序内存
     pmem[0] = 0x00100093; // addi x1, x0, 1  0001 00000 000 00001 0010011
     pmem[1] = 0x00208113; // addi x2, x1, 2  0010 00001 000 00010 0010011
-    pmem[2] = 0x00100073; // ebreak
+    // pmem[2] = 0x00100073; // ebreak
 
     // 仿真时钟和复位信号
     top->clk = 0;
@@ -62,11 +62,12 @@ int main(int argc, char **argv) {
                             << ", PC: 0x" << std::hex << top->pc
                             << ", Instruction: 0x" << pmem_read(top->pc) << std::endl;
                     top->mem_inst = pmem_read(top->pc);
-                    top->eval();  // 评估模型
-                    tfp->dump(time);  // 写入波形
                 }
             }
         }
+
+        top->eval();  // 评估模型
+        tfp->dump(time);  // 写入波形
 
         time++;  // 仿真时间步进
     }
