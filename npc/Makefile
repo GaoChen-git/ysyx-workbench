@@ -8,7 +8,7 @@ VFILES = $(wildcard $(VFILE_PATH)*.v)
 CSRC = ./csrc/npc_tb.cpp
 
 # 顶层模块名称
-TOP_MODULE = Vysyx_22050535_NPC
+TOP_MODULE = ysyx_22050535_NPC
 
 all:
 	@echo "Write this Makefile by your self."
