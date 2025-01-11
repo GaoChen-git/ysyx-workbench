@@ -19,7 +19,7 @@ uint32_t pmem_read(uint32_t addr) {
 
 // DPI-C 回调函数：在 ebreak 指令时结束仿真
 extern "C" void sim_end() {
-    std::cout << "Simulation ended due to ebreak instruction." << std::endl;
+    std::cout << "Simulation ended due to ebreak instruction.\n" << std::endl;
     exit(0);
 }
 
