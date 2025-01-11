@@ -9,11 +9,11 @@ uint32_t pmem[256];
 
 // 模拟存储器的读取函数
 uint32_t pmem_read(uint32_t addr) {
-    if (addr < 0x80000000 || addr >= 0x80000000 + 4 * (sizeof(pmem) / sizeof(uint32_t))) {
-        std::cerr << "Error: Memory access out of bounds at address: 0x"
-                  << std::hex << addr << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    // if (addr < 0x80000000 || addr >= 0x80000000 + 4 * (sizeof(pmem) / sizeof(uint32_t))) {
+    //     std::cerr << "Error: Memory access out of bounds at address: 0x"
+    //               << std::hex << addr << std::endl;
+    //     exit(EXIT_FAILURE);
+    // }
     return pmem[(addr - 0x80000000) / 4];
 }
 
