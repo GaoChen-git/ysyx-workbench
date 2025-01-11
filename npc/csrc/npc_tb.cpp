@@ -19,7 +19,7 @@ uint32_t pmem_read(uint32_t addr) {
 
 // DPI-C 回调函数：在 ebreak 指令时结束仿真
 extern "C" void sim_end() {
-    std::cout << "Simulation ended due to ebreak instruction.\n" << std::endl;
+    std::cout << "Simulation ended due to ebreak instruction." << std::endl;
     exit(0);
 }
 
@@ -50,18 +50,19 @@ int main(int argc, char **argv) {
     const uint64_t MAX_TIME = 100;  // 最大仿真周期限制，防止死循环
 
     while (!Verilated::gotFinish() && time < MAX_TIME) {
-        // 模拟时钟上升沿和下降沿
-        if ((time % 2) == 0) {
-            top->clk = !top->clk;   // 切换时钟信号
+        top->clk = !top->clk;   // 切换时钟信号
+        if(time>10){
             if (top->clk) {         // 上升沿
                 if (time == 2) {
                     top->rst = 0;   // 取消复位
                 }
-                // 每个周期从内存读取指令
-                std::cout << "Time: " << time
-                          << ", PC: 0x" << std::hex << top->pc
-                          << ", Instruction: 0x" << pmem_read(top->pc) << std::endl;
-                top->mem_inst = pmem_read(top->pc);
+                if(time>20){
+                    // 每个周期从内存读取指令
+                    std::cout << "Time: " << time
+                            << ", PC: 0x" << std::hex << top->pc
+                            << ", Instruction: 0x" << pmem_read(top->pc) << std::endl;
+                    top->mem_inst = pmem_read(top->pc);
+                }
             }
         }
 
