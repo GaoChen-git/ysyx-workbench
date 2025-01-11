@@ -17,7 +17,8 @@ all:
 sim:
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@echo "Building Verilator simulation with files from $(VFILE_PATH)..."
-	verilator -Wall --cc --exe --build $(CSRC) $(VFILES) -I$(VFILE_PATH) --trace
+	verilator -Wall --cc --exe --build $(CSRC) $(VFILES) -I$(VFILE_PATH) --trace\
+          --Wno-PINCONNECTEMPTY --Wno-WIDTHEXPAND --Wno-UNUSEDSIGNAL
 	@echo "Compiling simulation..."
 	make -C obj_dir -f $(TOP_MODULE).mk $(TOP_MODULE)
 	@echo "Running simulation..."
