@@ -1,3 +1,5 @@
+`include "ysyx_22050535_defines.v"
+
 module ysyx_22050535_Regs (
   input clk,
   input [`ysyx_22050535_DATA_WIDTH-1:0] wdata,

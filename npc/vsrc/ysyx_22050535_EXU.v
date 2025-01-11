@@ -1,7 +1,13 @@
-module EXU (
-    input [31:0] src1,
-    input [31:0] imm,
-    output [31:0] result
+`include "ysyx_22050535_defines.v"
+
+module ysyx_22050535_EXU (
+  input [`ysyx_22050535_DATA_WIDTH-1:0] src1,
+  input [`ysyx_22050535_DATA_WIDTH-1:0] imm,
+  output [`ysyx_22050535_DATA_WIDTH-1:0] result
 );
-    assign result = src1 + imm;
+  ysyx_22050535_Adder adder (
+    .op1(src1),
+    .op2(imm),
+    .result(result)
+  );
 endmodule
