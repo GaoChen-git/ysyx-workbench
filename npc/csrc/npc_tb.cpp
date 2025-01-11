@@ -50,13 +50,13 @@ int main(int argc, char **argv) {
     const uint64_t MAX_TIME = 100;  // 最大仿真周期限制，防止死循环
 
     while (!Verilated::gotFinish() && time < MAX_TIME) {
-        top->clk = !top->clk;   // 切换时钟信号
+        top->clk = !top->clk;   // 产生时钟信号
         if(time>10){
             if (top->clk) {         // 上升沿
                 if (time == 12) {
-                    top->rst = 0;   // 取消复位
+                    top->rst = 0;   // 复位信号停止复位
                 }
-                if(time>20){
+                if(time>=12){
                     // 每个周期从内存读取指令
                     std::cout << "Time: " << time
                             << ", PC: 0x" << std::hex << top->pc
