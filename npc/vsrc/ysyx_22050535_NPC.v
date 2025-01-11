@@ -34,7 +34,7 @@ module ysyx_22050535_NPC (
   );
 
   // 寄存器文件模块
-  ysyx_22050535_Regs rf_inst (
+  ysyx_22050535_Regs regs_inst (
     .clk(clk),
     .wdata(result),
     .waddr(rd),
