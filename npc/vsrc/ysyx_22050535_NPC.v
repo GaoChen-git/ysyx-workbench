@@ -41,8 +41,8 @@ module ysyx_22050535_NPC (
     .wen(1'b1),
     .raddr1(rs1),
     .raddr2(5'b0),
-    .rdata1(src1),
-    .rdata2()
+    .rdata1(src1)
+    // .rdata2()
   );
 
   // EXU模块
