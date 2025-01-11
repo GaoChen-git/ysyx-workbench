@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
         top->clk = !top->clk;   // 切换时钟信号
         if(time>10){
             if (top->clk) {         // 上升沿
-                if (time == 2) {
+                if (time == 12) {
                     top->rst = 0;   // 取消复位
                 }
                 if(time>20){
