@@ -18,21 +18,6 @@ module ysyx_22050535_NPC (
     .pc(pc)
   );
 
-  // IFU模块
-  ysyx_22050535_IFU ifu_inst (
-    .pc(pc),
-    .inst(inst),
-    .mem_inst(mem_inst)
-  );
-
-  // IDU模块
-  ysyx_22050535_IDU idu_inst (
-    .inst(inst),
-    .rs1(rs1),
-    .rd(rd),
-    .imm(imm)
-  );
-
   // 寄存器文件模块
   ysyx_22050535_Regs regs_inst (
     .clk(clk),
@@ -45,7 +30,22 @@ module ysyx_22050535_NPC (
     .rdata2()
   );
 
-  // EXU模块
+  // IFU取址模块
+  ysyx_22050535_IFU ifu_inst (
+    .pc(pc),
+    .inst(inst),
+    .mem_inst(mem_inst)
+  );
+
+  // IDU译码模块
+  ysyx_22050535_IDU idu_inst (
+    .inst(inst),
+    .rs1(rs1),
+    .rd(rd),
+    .imm(imm)
+  );
+
+  // EXU执行模块
   ysyx_22050535_EXU exu_inst (
     .src1(src1),
     .imm(imm),
@@ -56,4 +56,5 @@ module ysyx_22050535_NPC (
   ysyx_22050535_EBREAK ebreak_inst (
     .inst(inst)
   );
+
 endmodule

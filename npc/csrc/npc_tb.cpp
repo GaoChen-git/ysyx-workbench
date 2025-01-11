@@ -9,11 +9,11 @@ uint32_t pmem[256];
 
 // 模拟存储器的读取函数
 uint32_t pmem_read(uint32_t addr) {
-    // if (addr < 0x80000000 || addr >= 0x80000000 + 4 * (sizeof(pmem) / sizeof(uint32_t))) {
-    //     std::cerr << "Error: Memory access out of bounds at address: 0x"
-    //               << std::hex << addr << std::endl;
-    //     exit(EXIT_FAILURE);
-    // }
+    if (addr < 0x80000000 || addr >= 0x80000000 + 4 * (sizeof(pmem) / sizeof(uint32_t))) {
+        std::cerr << "Error: Memory access out of bounds at address: 0x"
+                  << std::hex << addr << std::endl;
+        exit(EXIT_FAILURE);
+    }
     return pmem[(addr - 0x80000000) / 4];
 }
 
@@ -37,8 +37,8 @@ int main(int argc, char **argv) {
     tfp->open("wave.vcd");  // 打开波形文件
 
     // 初始化程序内存
-    pmem[0] = 0x00100093; // addi x1, x0, 1
-    pmem[1] = 0x00208113; // addi x2, x1, 2
+    pmem[0] = 0x00100093; // addi x1, x0, 1  0001 00000 000 00001 0010011
+    pmem[1] = 0x00208113; // addi x2, x1, 2  0010 00001 000 00010 0010011
     pmem[2] = 0x00100073; // ebreak
 
     // 仿真时钟和复位信号
@@ -52,10 +52,10 @@ int main(int argc, char **argv) {
     while (!Verilated::gotFinish() && time < MAX_TIME) {
         // 模拟时钟上升沿和下降沿
         if ((time % 2) == 0) {
-            top->clk = !top->clk;  // 切换时钟信号
-            if (top->clk) {  // 上升沿
+            top->clk = !top->clk;   // 切换时钟信号
+            if (top->clk) {         // 上升沿
                 if (time == 2) {
-                    top->rst = 0;  // 取消复位
+                    top->rst = 0;   // 取消复位
                 }
                 // 每个周期从内存读取指令
                 std::cout << "Time: " << time

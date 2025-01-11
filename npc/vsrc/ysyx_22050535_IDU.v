@@ -1,3 +1,5 @@
+// 译码
+
 `include "ysyx_22050535_defines.v"
 
 module ysyx_22050535_IDU (
