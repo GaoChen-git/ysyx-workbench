@@ -21,6 +21,7 @@ module ysyx_22050535_EXU (
           3'b100: result = src1 ^ imm; // XORI
           3'b110: result = src1 | imm; // ORI
           3'b111: result = src1 & imm; // ANDI
+          default: result = 32'b0; // 未知func3
         endcase
       end
       7'b0110011: begin // R类型算术指令
@@ -33,6 +34,7 @@ module ysyx_22050535_EXU (
           3'b101: result = (func7[5]) ? ($signed(src1) >>> src2[4:0]) : (src1 >> src2[4:0]); // SRL/SRA
           3'b110: result = src1 | src2; // OR
           3'b111: result = src1 & src2; // AND
+          default: result = 32'b0; // 未知func3
         endcase
       end
       7'b1100011: begin // 分支指令
@@ -43,9 +45,10 @@ module ysyx_22050535_EXU (
           3'b101: branch_taken = ($signed(src1) >= $signed(src2)); // BGE
           3'b110: branch_taken = (src1 < src2); // BLTU
           3'b111: branch_taken = (src1 >= src2); // BGEU
+          default: result = 32'b0; // 未知func3
         endcase
       end
-      default: result = 32'b0;
+      default: result = 32'b0;// 未知opcode
     endcase
   end
 endmodule
