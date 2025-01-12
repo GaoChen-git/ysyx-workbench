@@ -6,4 +6,6 @@
 `define ysyx_22050535_INST_WIDTH 32             // 指令宽度
 `define ysyx_22050535_ADDR_WIDTH 32             // 地址宽度
 `define ysyx_22050535_DATA_WIDTH 32             // 数据宽度
-`define ysyx_22050535_REG_NUM 32                // 寄存器数量
+`define ysyx_22050535_REG_NUM 16                // RV32E 使用16个寄存器
+
+// `define ysyx_22050535_REG_NUM 32                // RV32I寄存器数量

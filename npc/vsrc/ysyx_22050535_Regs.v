@@ -10,15 +10,17 @@ module ysyx_22050535_Regs (
   output [`ysyx_22050535_DATA_WIDTH-1:0] rdata1,
   output [`ysyx_22050535_DATA_WIDTH-1:0] rdata2
 );
-  reg [`ysyx_22050535_DATA_WIDTH-1:0] regs [`ysyx_22050535_REG_NUM-1:0];
+    // RV32I:32个通用寄存器
+    // RV32E:16个通用寄存器
+    reg [`ysyx_22050535_DATA_WIDTH-1:0] regs [`ysyx_22050535_REG_NUM-1:0];
 
-  // 写操作
-  always @(posedge clk) begin
+    // 写操作
+    always @(posedge clk) begin
     if (wen && waddr != 0) // 确保0号寄存器恒为0
-      regs[waddr] <= wdata;
-  end
+        regs[waddr] <= wdata;
+    end
 
-  // 读操作
-  assign rdata1 = (raddr1 == 0) ? {`ysyx_22050535_DATA_WIDTH{1'b0}} : regs[raddr1];
-  assign rdata2 = (raddr2 == 0) ? {`ysyx_22050535_DATA_WIDTH{1'b0}} : regs[raddr2];
+    // 读操作
+    assign rdata1 = (raddr1 == 0) ? {`ysyx_22050535_DATA_WIDTH{1'b0}} : regs[raddr1];
+    assign rdata2 = (raddr2 == 0) ? {`ysyx_22050535_DATA_WIDTH{1'b0}} : regs[raddr2];
 endmodule
