@@ -9,7 +9,7 @@ module ysyx_22050535_NPC (
   wire [`ysyx_22050535_INST_WIDTH-1:0] inst;
   wire [`ysyx_22050535_DATA_WIDTH-1:0] src1, src2, result;
   wire [`ysyx_22050535_DATA_WIDTH-1:0] imm;
-  wire [3:0] rs1, rs2, rd;
+  wire [4:0] rs1, rs2, rd;
   wire branch_taken;
   wire [6:0] opcode;
   wire [2:0] func3;
