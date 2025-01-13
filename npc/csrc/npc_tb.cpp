@@ -71,13 +71,19 @@ void load_img(const char *img_file) {
 
 // 主函数
 int main(int argc, char **argv) {
+    const char *default_img = "/home/gaochen/ysyx-workbench/am-kernels/tests/cpu-tests/build/add-riscv32e-nemu.bin";
+    const char *img_file = nullptr;
+
+    // 检查命令行参数
     if (argc < 2) {
-        std::cerr << "Usage: ./npc_tb <image_file>" << std::endl;
-        return 1;
+        std::cout << "No image file provided. Using default image: " << default_img << std::endl;
+        img_file = default_img;
+    } else {
+        img_file = argv[1];
     }
 
     // 加载镜像文件
-    load_img(argv[1]);
+    load_img(img_file);
 
     Verilated::commandArgs(argc, argv);  // 解析命令行参数
 
