@@ -19,3 +19,9 @@ image: $(IMAGE).elf
 	@$(OBJDUMP) -d $(IMAGE).elf > $(IMAGE).txt
 	@echo + OBJCOPY "->" $(IMAGE_REL).bin
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
+
+
+# Run 目标：在 NPC 上运行
+run: image
+	@echo "Running on NPC..."
+	$(MAKE) -C $(NPC_HOME) sim IMG=$(IMAGE).bin
