@@ -8,6 +8,7 @@
 
 // 定义内存空间（模拟存储器）
 uint32_t pmem[0x8000000 / 4];  // 模拟128MB的存储空间（物理内存）
+int ebreak_end = 0;
 
 // 模拟存储器的读取函数
 extern "C" int pmem_read(int raddr) {
@@ -42,7 +43,7 @@ extern "C" void pmem_write(int waddr, int wdata, char wmask) {
 // DPI-C 回调函数：在 ebreak 指令时结束仿真
 extern "C" void sim_end() {
     std::cout << "Simulation ended due to ebreak instruction." << std::endl;
-    exit(0);
+    ebreak_end = 1;
 }
 
 // 加载镜像文件到模拟内存
@@ -101,9 +102,8 @@ int main(int argc, char **argv) {
     top->rst = 1;
 
     uint64_t time = 0;  // 仿真时钟周期计数器
-    const uint64_t MAX_TIME = 100;  // 最大仿真周期限制
 
-    while (!Verilated::gotFinish() && time < MAX_TIME) {
+    while (!Verilated::gotFinish() && !ebreak_end) {
         top->clk = !top->clk;   // 产生时钟信号
 
         if (time > 10) {  // 假设第10个时间周期后开始仿真
