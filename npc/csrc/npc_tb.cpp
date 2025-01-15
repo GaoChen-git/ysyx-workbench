@@ -102,8 +102,9 @@ int main(int argc, char **argv) {
     top->rst = 1;
 
     uint64_t time = 0;  // 仿真时钟周期计数器
+    const uint64_t MAX_TIME = 1000;  // 最大仿真周期限制
 
-    while (!Verilated::gotFinish() && !ebreak_end) {
+    while (!Verilated::gotFinish() && time < MAX_TIME && !ebreak_end) {
         top->clk = !top->clk;   // 产生时钟信号
 
         if (time > 10) {  // 假设第10个时间周期后开始仿真
@@ -125,6 +126,12 @@ int main(int argc, char **argv) {
         tfp->dump(time);  // 写入波形
 
         time++;  // 仿真时间步进
+    }
+
+    // 检查是否达到最大时间限制
+    if (time >= MAX_TIME) {
+        std::cerr << "Simulation ended due to reaching maximum time steps. PC: 0x"
+                  << std::hex << top->pc << std::endl;
     }
 
     // 清理资源
