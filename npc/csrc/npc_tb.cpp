@@ -127,12 +127,6 @@ int main(int argc, char **argv) {
         time++;  // 仿真时间步进
     }
 
-    // 检查是否达到最大时间限制
-    if (time >= MAX_TIME) {
-        std::cerr << "Simulation ended due to reaching maximum time steps. PC: 0x"
-                  << std::hex << top->pc << std::endl;
-    }
-
     // 清理资源
     tfp->close();
     delete tfp;
